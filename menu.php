@@ -1,6 +1,6 @@
 <div class="menu">
     <a href="Artwork.php">Insert Products</a>
-    <a href="ImageForm.php">Insert Image</a>
+    <a href="imageform.php">Insert Image</a>
     <div class="menu-right">
     <?php
        if(isset($_SESSION['username'])){
