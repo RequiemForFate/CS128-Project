@@ -1,6 +1,6 @@
 <?php 
   // connect php to mysql
-  $conn = new mysqli("localhost", "root", "", "paragonShopDB", 3306);
+  $conn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
   if ($conn->connect_error){
     die ("CANT CONNECT TO DATABASE");
   }
