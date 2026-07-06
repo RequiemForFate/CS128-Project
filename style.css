@@ -1,0 +1,67 @@
+body{
+    background-color: rgb(87, 85, 230); 
+    margin: 0;                   
+    min-height: 100vh;           
+    }
+
+h3{
+    color:#04011b;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    text-align:center
+}
+
+.top-header{
+    background:#b38b00;
+    color:#fff;
+    padding:15px;
+    font-size:24px
+}
+.banner{
+    background:#3a06a2;
+    color:#fff;
+    text-align:center;
+    padding:20px
+}
+.logo-big{
+    height:60px
+}
+.menu{
+    background:#4563ea;
+    padding:10px;
+    border:1px solid #21010b
+}
+.menu a{
+    margin-right:15px;
+    text-decoration:none;
+    color:#000
+}
+.menu-right{
+    float:right
+}
+.container{
+    max-width:1000px;
+    margin:auto;
+    background:#2a6a9f
+}
+.card{
+    padding:20px;
+    margin:50px;
+    align-items:center;
+    background-color:#79a2c4;
+}
+label{
+    font-weight:bold;
+    color:#04011b;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+input{
+    width:500px;
+    padding:8px;
+    margin:5px 15px;
+    background-color:#b5cbd9;
+}
+button{padding:8px 15px;border:none;color:#fff;margin-right:5px; font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;}
+.btn-primary{background:#00b49c}
+.btn-warning{background:#1fff50}
+.btn-danger{background:#d9534f}
+.center{text-align:center}
