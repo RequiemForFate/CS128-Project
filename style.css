@@ -16,6 +16,18 @@ h3 {
     text-align: center
 }
 
+h1 {
+    color: #04011b;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    text-align: center
+}
+
+h3 {
+    color: #04011b;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    text-align: center
+}
+
 .top-header {
     background: #b38b00;
     color: #fff;

@@ -66,7 +66,8 @@
     <div class="container">
         <?php include 'Banner.php'; ?>
 
-        <div class="card mt-3">
+        <div class="form-container">
+            <div class="card">
             <h3>Feature Form</h3>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
             
@@ -84,12 +85,14 @@
                 <button class="btn btn-primary" name="Insert" value="Insert">Insert</button>
                 <button class="btn btn-warning" name="Update" value="Update">Update</button>
                 <button class="btn btn-danger" name="Delete" value="Delete">Delete</button>
-
             </form>
+            </div>
             <br>
+
             <h1>Gallery preview</h1>
     
             <div class="row g-3">
+                <div class="card">
                 <?php
                     $sql = "SELECT * FROM Artdata";
                     $result = mysqli_query($conn, $sql);
@@ -111,6 +114,7 @@
                             </div>
                         </div>
                     <?php } ?>
+            </div>
             </div>
             </div>
         </div>
