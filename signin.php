@@ -26,23 +26,27 @@
 ?>
 <!DOCTYPE html>
 <html>
-<head><?php include 'header.php'; ?></head>
+<head>
+  <title>Sign In page</title>
+  <?php include 'header.php'; ?>
+  <link rel="stylesheet" href="styles.css">
+</head>
 <body>
-<div class="container">
-<?php include 'banner.php'; ?>
-<?php include 'menu.php'; ?>
-<div class="card">
-<h3>Sign In</h3>
-<form method="post">
-    <label>Username</label><br>
-    <input name="username" required><br><br>
-    <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
-    <label>Confirm Password</label>
-    <input type="password" name="confirmpassword" required><br><br>
-    <button class="btn-primary" name="signIn">Sign In</button>
-</form>
-</div>
-</div>
+  <div class="container">
+    <?php include 'banner.php'; ?>
+    <?php include 'menu.php'; ?>
+    <div class="card">
+      <h3>Sign In</h3>
+        <form method="post">
+            <label>Username</label><br>
+            <input name="username" required><br><br>
+            <label>Password</label><br>
+            <input type="password" name="password" required><br><br>
+            <label>Confirm Password</label><br>
+            <input type="password" name="confirmpassword" required><br><br>
+            <button class="btn-primary" name="signIn">Sign In</button>
+        </form>
+    </div>
+  </div>
 </body>
 </html>
