@@ -29,15 +29,15 @@
 <head>
   <title>Sign In page</title>
   <?php include 'header.php'; ?>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-  <div class="container">
+  <div class="container py-1">
     <?php include 'banner.php'; ?>
     <?php include 'menu.php'; ?>
-    <div class="card">
+    <div class="card-body">
       <h3>Sign In</h3>
-        <form method="post">
+        <form class="form-control center" method="post">
             <label>Username</label><br>
             <input name="username" required><br><br>
             <label>Password</label><br>
