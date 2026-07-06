@@ -4,6 +4,11 @@ body{
     min-height: 100vh;           
     }
 
+h1{
+    color:#04011b;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    text-align:center
+}
 h3{
     color:#04011b;
     font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
