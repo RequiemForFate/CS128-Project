@@ -66,7 +66,7 @@
     <div class="container">
         <?php include 'Banner.php'; ?>
 
-        <div class="card">
+        <div class="form-container">
             <h3>Feature Form</h3>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
             
