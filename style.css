@@ -1,5 +1,5 @@
 body {
-    background-color: rgb(87, 85, 230);
+    background-color: rgb(139, 172, 204);
     margin: 0;
     min-height: 100vh;
 }
@@ -16,14 +16,8 @@ h3 {
     text-align: center
 }
 
-h1 {
-    color: #04011b;
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center
-}
-
-h3 {
-    color: #04011b;
+h2 {
+    color: #fffae6;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     text-align: center
 }
@@ -36,7 +30,7 @@ h3 {
 }
 
 .banner {
-    background: #3a06a2;
+    background: #320194;
     color: #fff;
     text-align: center;
     padding: 20px
@@ -94,6 +88,7 @@ button {
     color: #fff;
     margin-right: 5px;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    border: 1px solid #4e0612;
 }
 
 .btn-primary {

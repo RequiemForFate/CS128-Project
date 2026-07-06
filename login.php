@@ -25,10 +25,15 @@
 ?>
 <!DOCTYPE html>
 <html>
-<head><?php include 'Header.php'; ?></head>
+<head>
+    <?php include 'header.php'; ?>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="style.css" rel="stylesheet">
+</head>
 <body>
-<div class="container">
+<div class="container py-1">
 <?php include 'banner.php'; ?>
+<?php include 'menu.php'; ?>
 <div class="card">
 <h3>Login</h3>
 <form method="post">
