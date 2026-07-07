@@ -13,9 +13,10 @@
     if ($password !== $confirmPassword){
         echo "TRY AGAIN";
         echo "<a href= 'signIn.php'>Sign In</a>";
+        exit();
     }
     $sql = "INSERT into users(name, password)
-    VALUE('$username', '$password')";
+    VALUES('$username', '$password')";
     if (mysqli_query($conn, $sql)){
         header ("location: login.php");
         exit();
@@ -28,7 +29,6 @@
 <html>
 <head>
   <title>Sign In page</title>
-  <?php include 'header.php'; ?>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link href="style.css" rel="stylesheet">
 </head>
@@ -45,9 +45,7 @@
             <input type="password" name="password" required><br><br>
             <label>Confirm Password</label><br>
             <input type="password" name="confirmpassword" required><br><br>
-            <label>Insert profile picture</label><br>
-            <input type="file" name="filUpload" id="image" accept="image/*"><br><br>
-            <button class="btn-primary" name="signIn">Sign In</button>
+            <button class=" btn btn-primary" name="signIn">Sign In</button>
         </form>
         <br>
     </div>
