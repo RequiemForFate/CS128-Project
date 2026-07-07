@@ -3,13 +3,13 @@ $conn = mysqli_connect("localhost", "root", "", "ArtShopDB", 3306);
     if (!$conn) {
         die("Connection failed: " . mysqli_connect_error());
     }
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if (!$id) {
-    die("No artwork ID provided.");
-}
-$sql = "SELECT * FROM Artdata WHERE ArtID = $id";
-$result = mysqli_query($conn, $sql);
-$row = mysqli_fetch_assoc($result);
+$id = (int)$_GET['id'];
+$sql = "SELECT * FROM Artdata WHERE ArtID = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc();
 if (!$row) {
     die("Artwork not found.");
 }
