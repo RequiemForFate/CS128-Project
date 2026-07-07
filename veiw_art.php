@@ -4,9 +4,12 @@ $conn = mysqli_connect("localhost", "root", "", "ArtShopDB", 3306);
         die("Connection failed: " . mysqli_connect_error());
     }
 $id = (int)$_GET['id'];
-$sql = "SELECT * FROM Artdata WHERE ArtID = $id";
-$result = mysqli_query($conn, $sql);
-$row = mysqli_fetch_assoc($result);
+$sql = "SELECT * FROM Artdata WHERE ArtID = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc();
 if (!$row) {
     die("Artwork not found.");
 }
@@ -31,7 +34,7 @@ if (!$row) {
         <!-- Image -->
         <div class="col-md-7">
             <img 
-            src="images/<?php echo $row['image_name']; ?>"
+            src="images/<?php echo htmlspecialchars($row['image_name']); ?>"
             class="big-image">
         </div>
 
@@ -39,44 +42,40 @@ if (!$row) {
         <!-- Information -->
         <div class="col-md-5">
             <h1>
-                <?php echo $row['ArtName']; ?>
+                <?php echo htmlspecialchars($row['ArtName']); ?>
             </h1>
             <p>
                 <strong>Artwork ID:</strong>
-                <?php echo $row['ArtID']; ?>
+                <?php echo htmlspecialchars($row['ArtID']); ?>
             </p>
             <p>
-                <?php echo $row['ArtDes']; ?>
+                <?php echo htmlspecialchars($row['ArtDes']); ?>
             </p>
 
             <?php 
                 $currentID = $row['ArtID'];
-                $prevResult = mysqli_query($conn,
-                    "SELECT ArtID
-                    FROM Artdata
-                    WHERE ArtID < '$currentID'
-                    ORDER BY ArtID DESC
-                    LIMIT 1");
-                $prev = mysqli_fetch_assoc($prevResult);
+                $prevStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE ArtID < ? ORDER BY ArtID DESC LIMIT 1");
+                $prevStmt->bind_param("i", $currentID);
+                $prevStmt->execute();
+                $prevResult = $prevStmt->get_result();
+                $prev = $prevResult->fetch_assoc();
 
-                $nextResult = mysqli_query($conn,
-                    "SELECT ArtID
-                    FROM Artdata
-                    WHERE ArtID > '$currentID'
-                    ORDER BY ArtID ASC
-                    LIMIT 1");
-                $next = mysqli_fetch_assoc($nextResult);
+                $nextStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE ArtID > ? ORDER BY ArtID ASC LIMIT 1");
+                $nextStmt->bind_param("i", $currentID);
+                $nextStmt->execute();
+                $nextResult = $nextStmt->get_result();
+                $next = $nextResult->fetch_assoc();
             ?>
             <div class="d-flex justify-content-between mt-4">
             <?php if ($prev) { ?>
-                <a href="veiw_art.php?id=<?php echo $prev['ArtID']; ?>" class="btn btn-dark">
+                <a href="veiw_art.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
                     ← Previous
                 </a>
             <?php } else { ?>
                 <div></div>
             <?php } ?>
             <?php if ($next) { ?>
-                <a href="veiw_art.php?id=<?php echo $next['ArtID']; ?>" class="btn btn-dark">
+                <a href="veiw_art.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
                     Next →
                 </a>
             <?php } ?>
