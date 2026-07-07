@@ -12,7 +12,7 @@
         height: 200px;
         object-fit: cover;
         text-align: center;
-        padding: 20px
+        padding: 20px;
         }
     .logo-big {
         width: 60px;
