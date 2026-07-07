@@ -5,35 +5,35 @@ body {
 
 h1 {
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center
+    text-align: center;
 }
 
 h3 {
     color: #04011b;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center
+    text-align: center;
 }
 
 h2 {
     color: #fffae6;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center
+    text-align: center;
 }
 
 .menu {
     background: #4563ea;
     padding: 10px;
-    border: 1px solid #21010b
+    border: 1px solid #21010b;
 }
 
 .menu a {
     margin-right: 15px;
     text-decoration: none;
-    color: #000
+    color: #000;
 }
 
 .menu-right {
-    float: right
+    float: right;
 }
 
 * {
@@ -186,7 +186,7 @@ button {
 }
 
 .center {
-    text-align: center
+    text-align: center;
 }
 
 .gallery {
