@@ -12,10 +12,10 @@
     }
     if($_SERVER['REQUEST_METHOD'] == "POST"){
         if(isset($_POST['Insert'])){
-            $ArtID = $_POST['ArtID'];
-            $ArtName = $_POST['ArtName'];
+            $ArtID = $conn->real_escape_string($_POST['ArtID']);
+            $ArtName = $conn->real_escape_string($_POST['ArtName']);
             $image = "";
-            $ArtDes = $_POST['ArtDes'];
+            $ArtDes = $conn->real_escape_string($_POST['ArtDes']);
 
             if(isset($_FILES['filUpload']) && $_FILES['filUpload']['error'] === UPLOAD_ERR_OK){
                 $image = basename($_FILES['filUpload']['name']);
@@ -24,21 +24,24 @@
                 }
             }
 
-            $sql = "INSERT INTO Artdata(ArtID, ArtName, image_name, ArtDes) VALUES('$ArtID','$ArtName','$image','$ArtDes')";
-            if(mysqli_query($conn, $sql)){
+            $stmt = $conn->prepare("INSERT INTO Artdata(ArtID, ArtName, image_name, ArtDes) VALUES(?, ?, ?, ?)");
+            $stmt->bind_param("ssss", $ArtID, $ArtName, $image, $ArtDes);
+            if($stmt->execute()){
                 echo "Insert success!";
             } else {
                 echo "Insert fail!";
             }
 
         } else if(isset($_POST['Update'])){
-            $ArtID = $_POST['ArtID'];
-            $ArtName = $_POST['ArtName'];
+            $ArtID = $conn->real_escape_string($_POST['ArtID']);
+            $ArtName = $conn->real_escape_string($_POST['ArtName']);
             $image = "";
-            $ArtDes = $_POST['ArtDes'];
+            $ArtDes = $conn->real_escape_string($_POST['ArtDes']);
 
-            $checkSql = "SELECT image_name FROM Artdata WHERE ArtID = '$ArtID'";
-            $checkResult = mysqli_query($conn, $checkSql);
+            $stmt = $conn->prepare("SELECT image_name FROM Artdata WHERE ArtID = ?");
+            $stmt->bind_param("s", $ArtID);
+            $stmt->execute();
+            $checkResult = $stmt->get_result();
             if($checkResult && $checkResult->num_rows > 0){
                 $existingImage = $checkResult->fetch_assoc();
                 $image = $existingImage['image_name'];
@@ -51,18 +54,19 @@
                 }
             }
 
-            $sql = "UPDATE Artdata set ArtName='$ArtName',
-                    image_name = '$image', ArtDes = '$ArtDes' where ArtID = '$ArtID'";
-            if(mysqli_query($conn, $sql)){
+            $updateStmt = $conn->prepare("UPDATE Artdata SET ArtName=?, image_name=?, ArtDes=? WHERE ArtID=?");
+            $updateStmt->bind_param("ssss", $ArtName, $image, $ArtDes, $ArtID);
+            if($updateStmt->execute()){
                 echo "Update success";
             } else {
                 echo "Fail";
             }
         }
         else if(isset($_POST['Delete'])){
-            $ArtID = $_POST['ArtID'];
-            $sql = "DELETE FROM Artdata where ArtID = '$ArtID'";
-            if(mysqli_query($conn, $sql)){
+            $ArtID = $conn->real_escape_string($_POST['ArtID']);
+            $deleteStmt = $conn->prepare("DELETE FROM Artdata WHERE ArtID=?");
+            $deleteStmt->bind_param("s", $ArtID);
+            if($deleteStmt->execute()){
                 echo "Delete success";
             } else {
                 echo "Fail";
@@ -89,13 +93,13 @@
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
             
                 <label>Art ID</label>
-                <input type="text" name="ArtID" value="<?php echo isset($_POST['ArtID']) ? $_POST['ArtID'] : ''; ?>" required class="form-control"><br>
+                <input type="text" name="ArtID" value="<?php echo isset($_POST['ArtID']) ? htmlspecialchars($_POST['ArtID']) : ''; ?>" required class="form-control"><br>
 
                 <label>Art Name</label>
-                <input type="text" name="ArtName" value="<?php echo isset($_POST['ArtName']) ? $_POST['ArtName'] : ''; ?>" class="form-control"><br>
+                <input type="text" name="ArtName" value="<?php echo isset($_POST['ArtName']) ? htmlspecialchars($_POST['ArtName']) : ''; ?>" class="form-control"><br>
 
                 <label>Art Description</label>
-                <input type="text" name="ArtDes" value="<?php echo isset($_POST['ArtDes']) ? $_POST['ArtDes'] : ''; ?>" class="form-control"><br>
+                <input type="text" name="ArtDes" value="<?php echo isset($_POST['ArtDes']) ? htmlspecialchars($_POST['ArtDes']) : ''; ?>" class="form-control"><br>
 
                 <input type="file" name="filUpload" id="image" accept="image/*"><br><br>
 <div class="btn btn-group d-flex justify-content-center">
@@ -124,9 +128,9 @@
                                         alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
                                 </div>
                                 <div class="card-body text-center">
-                                    <p>Art ID: <?php echo $row['ArtID']; ?></p>
-                                    <h6>Art Name: <?php echo $row['ArtName']; ?></h6>
-                                    <a href="imageform.php?ArtID=<?php echo $row['ArtID']; ?>"
+                                    <p>Art ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
+                                    <h6>Art Name: <?php echo htmlspecialchars($row['ArtName']); ?></h6>
+                                    <a href="imageform.php?ArtID=<?php echo htmlspecialchars($row['ArtID']); ?>"
                                     class="btn btn-sm btn-primary">
                                     Select
                                     </a>
