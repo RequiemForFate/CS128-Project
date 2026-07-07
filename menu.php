@@ -20,8 +20,8 @@ $username = isset($_SESSION['username']) && $_SESSION['username'] !== '' ? $_SES
     const sidebarToggle = document.getElementById('sidebarToggle');
     sidebarToggle.addEventListener('click', () => {
         const isClosed = sidebar.classList.toggle('closed');
+        document.body.classList.toggle('sidebar-closed', isClosed);
         sidebarToggle.setAttribute('aria-expanded', String(!isClosed));
         sidebarToggle.textContent = isClosed ? '☰ Menu' : '✕ Close';
     });
 </script>
-

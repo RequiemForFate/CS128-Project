@@ -25,16 +25,18 @@
     <div class=" py-1">
             <?php include 'banner.php'; ?>
             <?php include 'menu.php';?>
+    </div>
+    <div class="main-content">
     <div class="container mt-4">
     <div class="row g-4">
         <?php while($row = mysqli_fetch_assoc($result)) { ?>
         <div class="col-md-4">
             <div class="gallery h-100">
-                <a href="veiw_art.php?id=<?php echo $row['ArtID']; ?>">
+                <a href="veiw_art.php?id=<?php echo htmlspecialchars($row['ArtID']); ?>">
                     <img 
-                    src="images/<?php echo $row['image_name']; ?>" 
+                    src="images/<?php echo htmlspecialchars($row['image_name']); ?>" 
                     class="card-img-top gallery-img"
-                    alt="Image">
+                    alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
                 </a>
             </div>
         </div>
@@ -44,5 +46,6 @@
     </div>
 
 </div>
+    </div>
     </body>
 </html>

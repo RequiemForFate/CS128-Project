@@ -20,9 +20,11 @@
         }
     </style>
 <body class="bg-blue">
+    <div class="main-content">
     <div class="banner">
         <img src="banner.jpg" class="banner-image" alt="Banner Image">
         <h2 class="text-black">Concept of Fumble's Gallery</h2>
+    </div>
     </div>
 </body>
 </html>

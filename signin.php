@@ -7,18 +7,18 @@
   // check if user had made request to backend
   //user click sign in
   if ($_SERVER['REQUEST_METHOD'] == 'POST'){
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    $confirmPassword = $_POST['confirmpassword'];
+    $username = trim($_POST['username'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+    $confirmPassword = trim($_POST['confirmpassword'] ?? '');
     if ($password !== $confirmPassword){
         echo "TRY AGAIN";
-        echo "<a href= 'signIn.php'>Sign In</a>";
+        echo "<a href='signin.php'>Sign In</a>";
         exit();
     }
-    $sql = "INSERT into users(name, password)
-    VALUES('$username', '$password')";
-    if (mysqli_query($conn, $sql)){
-        header ("location: login.php");
+    $stmt = $conn->prepare("INSERT INTO users(name, password) VALUES(?, ?)");
+    $stmt->bind_param("ss", $username, $password);
+    if ($stmt->execute()){
+        header ("Location: login.php");
         exit();
     } else{
         echo "insert fail";
@@ -36,15 +36,17 @@
   <div class="container py-1">
     <?php include 'banner.php'; ?>
     <?php include 'menu.php'; ?>
+  </div>
+  <div class="main-content">
     <div class="card">
       <h3>Sign In</h3>
-        <form class="card-body center" method="post">
+        <form class="form-control" method="post">
             <label>Username</label><br>
-            <input name="username" required><br><br>
+            <input name="username" class="form-control" required><br><br>
             <label>Password</label><br>
-            <input type="password" name="password" required><br><br>
+            <input type="password" name="password" class="form-control" required><br><br>
             <label>Confirm Password</label><br>
-            <input type="password" name="confirmpassword" required><br><br>
+            <input type="password" name="confirmpassword" class="form-control" required><br><br>
             <button class=" btn btn-primary" name="signIn">Sign In</button>
         </form>
         <br>

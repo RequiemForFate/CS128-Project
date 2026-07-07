@@ -33,16 +33,18 @@
 <div class="container py-1">
 <?php include 'banner.php'; ?>
 <?php include 'menu.php'; ?>
+</div>
+<div class="main-content">
 <div class="card">
 <h3>Login</h3>
-<form method="post">
+<form class="form-control" method="post">
     <label>Username</label><br>
-    <input name="username" required><br><br>
+    <input name="username" class="form-control" required><br><br>
     <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
-    <button class="btn-primary">Login</button>
+    <input type="password" name="password" class="form-control" required><br><br>
+    <button class="btn btn-primary">Login</button>
 </form>
-<p class="center">No account? <a href="signIn.php">Sign up now</a></p>
+<p class="center">No account? <button class="btn btn-link" onclick="window.location.href='signIn.php'">Sign up now</button></p>
 </div>
 </div>
 <script>
