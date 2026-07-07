@@ -102,34 +102,31 @@
                 <input type="text" name="ArtDes" value="<?php echo isset($_POST['ArtDes']) ? htmlspecialchars($_POST['ArtDes']) : ''; ?>" class="form-control"><br>
 
                 <input type="file" name="filUpload" id="image" accept="image/*"><br><br>
-<div class="btn btn-group d-flex justify-content-center">
+                <div class="btn btn-group d-flex justify-content-center">
                 <button class="btn btn-primary" name="Insert" value="Insert">Insert</button>
                 <button class="btn btn-warning" name="Update" value="Update">Update</button>
-                <button class="btn btn-danger" name="Delete" value="Delete">Delete</button>
-</div>
+                <button class="btn btn-danger" name="Delete" value="Delete">Delete</button> </div>
             </form>
             </div>
             <br>
 <div class="gallery-wrapper">
         <h1>Gallery preview</h1>
 
-            <div class="row g-3 gallery-row">
+            <div class="row row-cols-1 row-cols-lg-3 row-cols-md-2 g-4 gallery-row">
                 <?php
                     $sql = "SELECT * FROM Artdata";
                     $result = mysqli_query($conn, $sql);
                     if($result && $result->num_rows > 0){
                         while($row = $result->fetch_assoc()){
                 ?>
-                        <div class="col-6 col-md-3 col-lg-2">
-                            <div class="card h-100 gallery-card">
-                                <div class="gallery-image-wrapper">
-                                    <img src="images/<?php echo htmlspecialchars($row['image_name']); ?>"
-                                        class="card-img-top gallery-preview-image"
-                                        alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
-                                </div>
+                        <div class="col">
+                            <div class="card h-100">
+                                <img src="images/<?php echo htmlspecialchars($row['image_name']); ?>"
+                                    class="card-img-top"
+                                    alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
                                 <div class="card-body text-center">
-                                    <p>Art ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
-                                    <h6>Art Name: <?php echo htmlspecialchars($row['ArtName']); ?></h6>
+                                    <p class="card-text small">Art ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
+                                    <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
                                     <a href="imageform.php?ArtID=<?php echo htmlspecialchars($row['ArtID']); ?>"
                                     class="btn btn-sm btn-primary">
                                     Select
@@ -142,9 +139,11 @@
             </div>
             </div>
             </div>
+            </div>
+            </div>
         </div>
     </div>
     </div>
-
+    </div>
 </body>
 </html>
