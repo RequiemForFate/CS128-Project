@@ -1,5 +1,10 @@
 <?php
     session_start();
+    $uploadDir = "images";
+    if(!is_dir($uploadDir)){
+        mkdir($uploadDir, 0777, true);
+    }
+
     $conn = new mysqli("localhost","root","",
                 "ArtShopDB",3306);
     if($conn->connect_error){
@@ -9,16 +14,17 @@
         if(isset($_POST['Insert'])){
             $ArtID = $_POST['ArtID'];
             $ArtName = $_POST['ArtName'];
-            $image_name = "";
-            $ArtDes = $_POST['ArtDescription'];
+            $image = "";
+            $ArtDes = $_POST['ArtDes'];
 
-            if(move_uploaded_file($_FILES['filUpload']['tmp_name'],
-            "image/". $_FILES['filUpload']['name'])){
-                $image = $_FILES['filUpload']['name'];
+            if(isset($_FILES['filUpload']) && $_FILES['filUpload']['error'] === UPLOAD_ERR_OK){
+                $image = basename($_FILES['filUpload']['name']);
+                if(!move_uploaded_file($_FILES['filUpload']['tmp_name'], $uploadDir . "/" . $image)){
+                    echo "Image upload failed!";
+                }
             }
 
-            // step 2: insert data in table
-            $sql = "INSERT INTO Artdata(ArtID, ArtName, image_name, ArtDescription) VALUES('$ArtID','$ArtName','$image','$ArtDes')";
+            $sql = "INSERT INTO Artdata(ArtID, ArtName, image_name, ArtDes) VALUES('$ArtID','$ArtName','$image','$ArtDes')";
             if(mysqli_query($conn, $sql)){
                 echo "Insert success!";
             } else {
@@ -28,18 +34,25 @@
         } else if(isset($_POST['Update'])){
             $ArtID = $_POST['ArtID'];
             $ArtName = $_POST['ArtName'];
-            $image_name = "";
-            $ArtDes = $_POST['ArtDescription'];
+            $image = "";
+            $ArtDes = $_POST['ArtDes'];
 
-
-            if(move_uploaded_file($_FILES['filUpload']['tmp_name'],
-            "image/". $_FILES['filUpload']['name'])){
-                $image = $_FILES['filUpload']['name'];
+            $checkSql = "SELECT image_name FROM Artdata WHERE ArtID = '$ArtID'";
+            $checkResult = mysqli_query($conn, $checkSql);
+            if($checkResult && $checkResult->num_rows > 0){
+                $existingImage = $checkResult->fetch_assoc();
+                $image = $existingImage['image_name'];
             }
 
+            if(isset($_FILES['filUpload']) && $_FILES['filUpload']['error'] === UPLOAD_ERR_OK){
+                $image = basename($_FILES['filUpload']['name']);
+                if(!move_uploaded_file($_FILES['filUpload']['tmp_name'], $uploadDir . "/" . $image)){
+                    echo "Image upload failed!";
+                }
+            }
 
             $sql = "UPDATE Artdata set ArtName='$ArtName',
-                    image_name = '$image', ArtDescription = '$ArtDes' where ArtID = '$ArtID'";
+                    image_name = '$image', ArtDes = '$ArtDes' where ArtID = '$ArtID'";
             if(mysqli_query($conn, $sql)){
                 echo "Update success";
             } else {
@@ -62,17 +75,17 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <?php include 'header.php'; ?>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
         <link href="style.css" rel="stylesheet">
     </head>
 <body>
     <div class="container">
-        <?php include 'Banner.php'; ?>
+        <?php include 'banner.php'; ?>
+        <?php include 'menu.php'; ?>
 
         <div class="form-container">
             <div class="card">
-            <h3>Feature Form</h3>
+            <h3>Portfolio Application</h3>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
             
                 <label>Art ID</label>
@@ -82,31 +95,34 @@
                 <input type="text" name="ArtName" value="<?php echo isset($_POST['ArtName']) ? $_POST['ArtName'] : ''; ?>" class="form-control"><br>
 
                 <label>Art Description</label>
-                <input type="text" name="ArtDescription" value="<?php echo isset($_POST['ArtDescription']) ? $_POST['ArtDescription'] : ''; ?>" class="form-control"><br>
+                <input type="text" name="ArtDes" value="<?php echo isset($_POST['ArtDes']) ? $_POST['ArtDes'] : ''; ?>" class="form-control"><br>
 
                 <input type="file" name="filUpload" id="image" accept="image/*"><br><br>
-
+<div class="btn btn-group d-flex justify-content-center">
                 <button class="btn btn-primary" name="Insert" value="Insert">Insert</button>
                 <button class="btn btn-warning" name="Update" value="Update">Update</button>
                 <button class="btn btn-danger" name="Delete" value="Delete">Delete</button>
+</div>
             </form>
             </div>
             <br>
+<div class="gallery-wrapper">
+        <h1>Gallery preview</h1>
 
-            <h1>Gallery preview</h1>
-    
-            <div class="row g-3">
-                <div class="card">
+            <div class="row g-3 gallery-row">
                 <?php
                     $sql = "SELECT * FROM Artdata";
                     $result = mysqli_query($conn, $sql);
-                    while($row = $result->fetch_assoc()){
+                    if($result && $result->num_rows > 0){
+                        while($row = $result->fetch_assoc()){
                 ?>
-                        <div class="col-6 col-md-4 col-lg-3">
-                            <div class="card h-100">
-                                <img src="image/<?php echo $row['image_name']; ?>" 
-                                    class="card-img-top img-fluid" 
-                                    style="height:200px; object-fit:cover;">
+                        <div class="col-6 col-md-3 col-lg-2">
+                            <div class="card h-100 gallery-card">
+                                <div class="gallery-image-wrapper">
+                                    <img src="images/<?php echo htmlspecialchars($row['image_name']); ?>"
+                                        class="card-img-top gallery-preview-image"
+                                        alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
+                                </div>
                                 <div class="card-body text-center">
                                     <p>Art ID: <?php echo $row['ArtID']; ?></p>
                                     <h6>Art Name: <?php echo $row['ArtName']; ?></h6>
@@ -117,12 +133,14 @@
                                 </div>
                             </div>
                         </div>
-                    <?php } ?>
+                    <?php }
+                    } ?>
             </div>
             </div>
             </div>
         </div>
     </div>
+</div>
 
 </body>
 </html>

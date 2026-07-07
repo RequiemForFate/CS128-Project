@@ -45,6 +45,8 @@
             <input type="password" name="password" required><br><br>
             <label>Confirm Password</label><br>
             <input type="password" name="confirmpassword" required><br><br>
+            <label>Insert profile picture</label><br>
+            <input type="file" name="filUpload" id="image" accept="image/*"><br><br>
             <button class="btn-primary" name="signIn">Sign In</button>
         </form>
         <br>

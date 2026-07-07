@@ -12,7 +12,7 @@
             if($_POST['username'] == $row['name'] && $_POST['password'] == $row['password']){
                 $_SESSION['username'] = $_POST['username'];
                 $_SESSION['password'] = $_POST['password'];
-                header("Location: ProductForm.php");
+                header("Location: imageform.php");
                 exit();
                 $status = false;
         }
@@ -26,7 +26,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <?php include 'header.php'; ?>
+    <title>Login page</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link href="style.css" rel="stylesheet">
 </head>

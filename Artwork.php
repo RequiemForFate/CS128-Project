@@ -10,24 +10,27 @@
 
     </head>
     <body>
+        
         <?php
             $conn = mysqli_connect("localhost", "root", "", "ArtShopDB",3306);
             if (!$conn) {
-            die("Connection failed: " . mysqli_connect_error());
+                die("Connection failed: " . mysqli_connect_error());
             }
-            $sql = "SELECT * FROM gallery";
+            $sql = "SELECT * FROM Artdata";
             $result = mysqli_query($conn, $sql);
             if (!$result) {
                 die("Query failed: " . mysqli_error($conn));
             }
         ?>
-    <div class="gallery">
+    <div class=" py-1">
+            <?php include 'banner.php'; ?>
+    <div class="gallery-container row-cols-5">
         <?php while($row = mysqli_fetch_assoc($result)) { ?>
     <div class="photo">
-        <img src="image/<?php echo $row['ImageFile']; ?>" alt="Image">
+        <img src="images/<?php echo $row['image_name']; ?>" alt="Image">
         <h3><?php echo $row['ArtName']; ?></h3>
         <p><strong>Image ID:</strong> <?php echo $row['ArtID']; ?></p>
-        <p><?php echo $row['ArtDescription']; ?></p>
+        <p><?php echo $row['ArtDes']; ?></p>
     </div>
 
     <?php } ?>
