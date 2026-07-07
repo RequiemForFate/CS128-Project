@@ -101,6 +101,20 @@ h2 {
     background-color: #575757;
 }
 
+.profile-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 20%;
+    object-fit: cover;
+    border: 2px solid #fff;
+}
+
 
 /* 3. Style the links inside the sidebar */
 
