@@ -7,24 +7,35 @@
 </head>
 
 <style>
-        .banner-image {
+    body {
+        margin: 0;
+    }
+
+    .banner {
         width: 100%;
-        height: 200px;
+        margin: 0;
+        padding: 0;
+    }
+
+    .banner-image {
+        display: block;
+        width: 100%;
+        height: auto;
+        min-height: 180px;
+        max-height: 280px;
         object-fit: cover;
-        text-align: center;
-        padding: 20px;
-        }
+        padding: 0;
+    }
+
     .logo-big {
         width: 60px;
         height: auto;
-        }
-    </style>
+    }
+</style>
 <body class="bg-blue">
-    <div class="main-content">
     <div class="banner">
         <img src="banner.jpg" class="banner-image" alt="Banner Image">
         <h2 class="text-black">Concept of Fumble's Gallery</h2>
-    </div>
     </div>
 </body>
 </html>

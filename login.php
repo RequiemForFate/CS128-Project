@@ -35,17 +35,19 @@
 <?php include 'menu.php'; ?>
 </div>
 <div class="main-content">
-<div class="card">
-<h3>Login</h3>
-<form class="form-control" method="post">
-    <label>Username</label><br>
-    <input name="username" class="form-control" required><br><br>
-    <label>Password</label><br>
-    <input type="password" name="password" class="form-control" required><br><br>
-    <button class="btn btn-primary">Login</button>
-</form>
-<p class="center">No account? <button class="btn btn-link" onclick="window.location.href='signIn.php'">Sign up now</button></p>
-</div>
+    <div class="auth-page">
+        <div class="auth-card">
+            <h3>Login</h3>
+            <form class="auth-form" method="post">
+                <label>Username</label><br>
+                <input name="username" class="form-control" required><br>
+                <label>Password</label><br>
+                <input type="password" name="password" class="form-control" required><br>
+                <button class="btn btn-primary">Login</button>
+            </form>
+            <p class="auth-link">No account? <a href="signin.php">Sign up now</a></p>
+        </div>
+    </div>
 </div>
 <script>
     <?php if (!empty($loginError)) { ?>

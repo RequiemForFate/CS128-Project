@@ -38,18 +38,19 @@
     <?php include 'menu.php'; ?>
   </div>
   <div class="main-content">
-    <div class="card">
-      <h3>Sign In</h3>
-        <form class="form-control" method="post">
-            <label>Username</label><br>
-            <input name="username" class="form-control" required><br><br>
-            <label>Password</label><br>
-            <input type="password" name="password" class="form-control" required><br><br>
-            <label>Confirm Password</label><br>
-            <input type="password" name="confirmpassword" class="form-control" required><br><br>
-            <button class=" btn btn-primary" name="signIn">Sign In</button>
+    <div class="auth-page">
+      <div class="auth-card">
+        <h3>Sign In</h3>
+        <form class="auth-form" method="post">
+          <label>Username</label><br>
+          <input name="username" class="form-control" required><br>
+          <label>Password</label><br>
+          <input type="password" name="password" class="form-control" required><br>
+          <label>Confirm Password</label><br>
+          <input type="password" name="confirmpassword" class="form-control" required><br>
+          <button class="btn btn-primary" name="signIn">Sign In</button>
         </form>
-        <br>
+      </div>
     </div>
   </div>
 </body>
