@@ -1,26 +1,25 @@
-<?php 
+<?php
     session_start();
     $conn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
-    if($_SERVER['REQUEST_METHOD'] == "POST"){
-        $sql = "SELECT * FROM users";
-        $result = mysqli_query($conn, $sql);
-        $status = true;
-        while($row = $result->fetch_assoc()){
-            if($_POST['username'] == $row['name'] && $_POST['password'] == $row['password']){
-                $_SESSION['username'] = $_POST['username'];
-                $_SESSION['password'] = $_POST['password'];
-                header("Location: imageform.php");
-                exit();
-                $status = false;
+    if ($_SERVER['REQUEST_METHOD'] == "POST") {
+        $username = trim($_POST['username'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+
+        $stmt = $conn->prepare("SELECT name, password FROM users WHERE name = ? AND password = ?");
+        $stmt->bind_param("ss", $username, $password);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $_SESSION['username'] = $username;
+            header("Location: imageform.php");
+            exit();
+        } else {
+            $loginError = "Invalid username or password.";
         }
-        if(!$status){
-            echo "Invalid username or password.";
-            echo "<a href='login.php'>Go back</a>";
-        }
-    }
     }
 ?>
 <!DOCTYPE html>
@@ -46,5 +45,12 @@
 <p class="center">No account? <a href="signIn.php">Sign up now</a></p>
 </div>
 </div>
+<script>
+    <?php if (!empty($loginError)) { ?>
+        if (confirm("<?php echo addslashes($loginError); ?>\n\nClick OK to try again.")) {
+            window.location.href = "login.php";
+        }
+    <?php } ?>
+</script>
 </body>
 </html>

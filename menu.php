@@ -1,11 +1,17 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$username = isset($_SESSION['username']) && $_SESSION['username'] !== '' ? $_SESSION['username'] : 'Login';
+?>
+
 <!-- The Side Menu -->
 <button id="sidebarToggle" class="sidebar-toggle" aria-expanded="true" aria-controls="sidebar">☰ Menu</button>
 <div class="sidebar" id="sidebar">
     <a href="Artwork.php">Gallery</a><br>
     <a href="imageform.php">Insert Image</a><br>
-    <a href="login.php">
-        <?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Login'; 
-        ?>
+    <a href="profile.php">
+        <?php echo htmlspecialchars($username); ?>
     </a><br>
     <a href="logout.php">Logout</a><br>
 </div>

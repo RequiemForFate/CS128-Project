@@ -24,13 +24,12 @@
         ?>
     <div class=" py-1">
             <?php include 'banner.php'; ?>
+            <?php include 'menu.php';?>
     <div class="gallery-container row-cols-5">
         <?php while($row = mysqli_fetch_assoc($result)) { ?>
     <div class="photo">
         <img src="images/<?php echo $row['image_name']; ?>" alt="Image">
         <h3><?php echo $row['ArtName']; ?></h3>
-        <p><strong>Image ID:</strong> <?php echo $row['ArtID']; ?></p>
-        <p><?php echo $row['ArtDes']; ?></p>
     </div>
 
     <?php } ?>
