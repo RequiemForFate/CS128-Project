@@ -17,9 +17,13 @@ if (!$conn) {
 // Fetch artworks belonging to this user
 $sql = "SELECT * FROM Artdata WHERE owner = ? ORDER BY id DESC"; // order by internal id
 $stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, "s", $currentUser);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "s", $currentUser);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+} else {
+    $result = null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -66,7 +70,9 @@ $result = mysqli_stmt_get_result($stmt);
     </div> <!-- end container -->
 
     <?php
-    mysqli_stmt_close($stmt);
+    if ($stmt) {
+        mysqli_stmt_close($stmt);
+    }
     mysqli_close($conn);
     ?>
 </body>

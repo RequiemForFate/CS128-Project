@@ -35,7 +35,7 @@ if (!extension_loaded('mysqli')) {
 // Ensure the owner column exists (already in the new table, but keep for safety)
 if ($conn !== null) {
     $check = $conn->query("SHOW COLUMNS FROM Artdata LIKE 'owner'");
-    if ($check->num_rows == 0) {
+    if ($check && $check->num_rows == 0) {
         $conn->query("ALTER TABLE Artdata ADD COLUMN owner VARCHAR(255) NOT NULL DEFAULT ''");
     }
 }
@@ -43,9 +43,9 @@ if ($conn !== null) {
 // Handle POST actions
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null) {
-    $ArtID   = $conn->real_escape_string($_POST['ArtID']);
-    $ArtName = $conn->real_escape_string($_POST['ArtName']);
-    $ArtDes  = $conn->real_escape_string($_POST['ArtDes']);
+    $ArtID   = $conn->real_escape_string($_POST['ArtID'] ?? '');
+    $ArtName = $conn->real_escape_string($_POST['ArtName'] ?? '');
+    $ArtDes  = $conn->real_escape_string($_POST['ArtDes'] ?? '');
     $image   = '';
 
     // Process file upload
@@ -70,13 +70,17 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null) {
     if (isset($_POST['Insert'])) {
         if ($uploadOk && $image !== '') {
             $stmt = $conn->prepare("INSERT INTO Artdata(ArtID, ArtName, image_name, ArtDes, owner) VALUES(?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssss", $ArtID, $ArtName, $image, $ArtDes, $currentUser);
-            if ($stmt->execute()) {
-                $message = 'Insert success!';
+            if ($stmt) {
+                $stmt->bind_param("sssss", $ArtID, $ArtName, $image, $ArtDes, $currentUser);
+                if ($stmt->execute()) {
+                    $message = 'Insert success!';
+                } else {
+                    $message = 'Insert failed: ' . $stmt->error;
+                }
+                $stmt->close();
             } else {
-                $message = 'Insert failed: ' . $stmt->error;
+                $message = 'Database error: ' . $conn->error;
             }
-            $stmt->close();
         } else {
             $message = $message ?: 'Please select an image to insert.';
         }
@@ -86,59 +90,75 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null) {
     elseif (isset($_POST['Update'])) {
         // Fetch current image name
         $stmt = $conn->prepare("SELECT image_name FROM Artdata WHERE ArtID = ? AND owner = ?");
-        $stmt->bind_param("ss", $ArtID, $currentUser);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result && $result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $oldImage = $row['image_name'];
-        } else {
-            $message = 'Record not found or you do not own it.';
+        if ($stmt) {
+            $stmt->bind_param("ss", $ArtID, $currentUser);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $oldImage = $row['image_name'];
+            } else {
+                $message = 'Record not found or you do not own it.';
+                $stmt->close();
+                header("Location: " . $_SERVER['PHP_SELF'] . "?msg=" . urlencode($message));
+                exit();
+            }
             $stmt->close();
-            header("Location: " . $_SERVER['PHP_SELF'] . "?msg=" . urlencode($message));
-            exit();
-        }
-        $stmt->close();
 
-        // If a new image was uploaded, use it; otherwise keep old
-        $newImage = ($uploadOk && $image !== '') ? $image : $oldImage;
+            // If a new image was uploaded, use it; otherwise keep old
+            $newImage = ($uploadOk && $image !== '') ? $image : $oldImage;
 
-        $updateStmt = $conn->prepare("UPDATE Artdata SET ArtName=?, image_name=?, ArtDes=? WHERE ArtID=? AND owner=?");
-        $updateStmt->bind_param("sssss", $ArtName, $newImage, $ArtDes, $ArtID, $currentUser);
-        if ($updateStmt->execute()) {
-            $message = 'Update success';
+            $updateStmt = $conn->prepare("UPDATE Artdata SET ArtName=?, image_name=?, ArtDes=? WHERE ArtID=? AND owner=?");
+            if ($updateStmt) {
+                $updateStmt->bind_param("sssss", $ArtName, $newImage, $ArtDes, $ArtID, $currentUser);
+                if ($updateStmt->execute()) {
+                    $message = 'Update success';
+                } else {
+                    $message = 'Update failed: ' . $updateStmt->error;
+                }
+                $updateStmt->close();
+            } else {
+                $message = 'Database error: ' . $conn->error;
+            }
         } else {
-            $message = 'Update failed: ' . $updateStmt->error;
+            $message = 'Database error: ' . $conn->error;
         }
-        $updateStmt->close();
     }
 
     // Delete
     elseif (isset($_POST['Delete'])) {
         // First, get the image name to delete the file
         $stmt = $conn->prepare("SELECT image_name FROM Artdata WHERE ArtID=? AND owner=?");
-        $stmt->bind_param("ss", $ArtID, $currentUser);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result && $result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $imageFile = $row['image_name'];
-            // Delete the file if it exists
-            if (!empty($imageFile) && file_exists($uploadDir . '/' . $imageFile)) {
-                unlink($uploadDir . '/' . $imageFile);
+        if ($stmt) {
+            $stmt->bind_param("ss", $ArtID, $currentUser);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $imageFile = $row['image_name'];
+                // Delete the file if it exists
+                if (!empty($imageFile) && file_exists($uploadDir . '/' . $imageFile)) {
+                    unlink($uploadDir . '/' . $imageFile);
+                }
             }
-        }
-        $stmt->close();
+            $stmt->close();
 
-        // Now delete the record
-        $deleteStmt = $conn->prepare("DELETE FROM Artdata WHERE ArtID=? AND owner=?");
-        $deleteStmt->bind_param("ss", $ArtID, $currentUser);
-        if ($deleteStmt->execute()) {
-            $message = 'Delete success';
+            // Now delete the record
+            $deleteStmt = $conn->prepare("DELETE FROM Artdata WHERE ArtID=? AND owner=?");
+            if ($deleteStmt) {
+                $deleteStmt->bind_param("ss", $ArtID, $currentUser);
+                if ($deleteStmt->execute()) {
+                    $message = 'Delete success';
+                } else {
+                    $message = 'Delete failed: ' . $deleteStmt->error;
+                }
+                $deleteStmt->close();
+            } else {
+                $message = 'Database error: ' . $conn->error;
+            }
         } else {
-            $message = 'Delete failed: ' . $deleteStmt->error;
+            $message = 'Database error: ' . $conn->error;
         }
-        $deleteStmt->close();
     }
 
     $conn->close();
@@ -201,29 +221,31 @@ $msg = isset($_GET['msg']) ? htmlspecialchars($_GET['msg']) : '';
                         if ($conn !== null) {
                             $sql = "SELECT * FROM Artdata WHERE owner = ? ORDER BY id DESC";
                             $stmt = $conn->prepare($sql);
-                            $stmt->bind_param("s", $currentUser);
-                            $stmt->execute();
-                            $result = $stmt->get_result();
-                            if ($result && $result->num_rows > 0) {
-                                while ($row = $result->fetch_assoc()) {
-                                    ?>
-                                    <div class="col"> <!-- col start -->
-                                        <div class="card h-100"> <!-- card start -->
-                                            <img src="images/<?php echo urlencode($row['image_name']); ?>"
-                                                 class="card-img-top"
-                                                 alt="<?php echo htmlspecialchars($row['ArtName']); ?>"
-                                                 onerror="this.src='images/placeholder.png';">
-                                            <div class="card-body text-center"> <!-- card-body start -->
-                                                <p class="card-text small">Art ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
-                                                <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
-                                            </div> <!-- end card-body -->
-                                        </div> <!-- end card -->
-                                    </div> <!-- end col -->
-                                <?php }
-                            } else {
-                                echo '<div class="col-12"><div class="alert alert-secondary">No images uploaded yet.</div></div>';
+                            if ($stmt) {
+                                $stmt->bind_param("s", $currentUser);
+                                $stmt->execute();
+                                $result = $stmt->get_result();
+                                if ($result && $result->num_rows > 0) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        ?>
+                                        <div class="col"> <!-- col start -->
+                                            <div class="card h-100"> <!-- card start -->
+                                                <img src="images/<?php echo urlencode($row['image_name']); ?>"
+                                                     class="card-img-top"
+                                                     alt="<?php echo htmlspecialchars($row['ArtName']); ?>"
+                                                     onerror="this.src='images/placeholder.png';">
+                                                <div class="card-body text-center"> <!-- card-body start -->
+                                                    <p class="card-text small">Art ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
+                                                    <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
+                                                </div> <!-- end card-body -->
+                                            </div> <!-- end card -->
+                                        </div> <!-- end col -->
+                                        <?php }
+                                } else {
+                                    echo '<div class="col-12"><div class="alert alert-secondary">No images uploaded yet.</div></div>';
+                                }
+                                $stmt->close();
                             }
-                            $stmt->close();
                             $conn->close();
                         }
                         ?>
