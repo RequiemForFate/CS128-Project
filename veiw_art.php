@@ -24,15 +24,15 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$id = isset($_GET['id']) ? $_GET['id'] : '';
 
-if ($id <= 0) {
+if (empty($id)) {
     $errorMessage = 'Invalid artwork ID.';
     $row = null;
 } else {
     $sql = "SELECT * FROM Artdata WHERE ArtID = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
+    $stmt->bind_param("s", $id);
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
@@ -49,14 +49,14 @@ if (!$row) {
     // Get previous and next artwork
     $currentID = $row['ArtID'];
 
-    $prevStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE ArtID < ? ORDER BY ArtID DESC LIMIT 1");
-    $prevStmt->bind_param("i", $currentID);
+    $prevStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE ArtID < ? AND owner = ? ORDER BY ArtID DESC LIMIT 1");
+    $prevStmt->bind_param("ss", $currentID, $row['owner']);
     $prevStmt->execute();
     $prevResult = $prevStmt->get_result();
     $prev = $prevResult->fetch_assoc();
 
-    $nextStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE ArtID > ? ORDER BY ArtID ASC LIMIT 1");
-    $nextStmt->bind_param("i", $currentID);
+    $nextStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE ArtID > ? AND owner = ? ORDER BY ArtID ASC LIMIT 1");
+    $nextStmt->bind_param("ss", $currentID, $row['owner']);
     $nextStmt->execute();
     $nextResult = $nextStmt->get_result();
     $next = $nextResult->fetch_assoc();
