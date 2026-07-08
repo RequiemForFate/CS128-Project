@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Prepare image sources
 $profileImageSrc = !empty($userData['profile_picture'])
     ? 'images/' . htmlspecialchars($userData['profile_picture'])
-    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cellipse cx="32" cy="48" rx="20" ry="16" fill="%23ffffff"/%3E%3C/svg%3E';
+    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cpath d="M 10 54 Q 10 40 32 40 Q 54 40 54 54" fill="%23ffffff"/%3E%3C/svg%3E';
 
 $bannerImageSrc = !empty($userData['banner_image'])
     ? 'images/' . htmlspecialchars($userData['banner_image'])
@@ -180,7 +180,7 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                                 <!-- Profile Picture Field -->
                                 <div class="mb-3">
                                     <label for="profile_picture" class="form-label">Profile Picture</label>
-                                    <input type="file" id="profile_picture"name="profile_picture" class="form-control" accept="image/*">
+                                    <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
                                 </div>
 
                                 <!-- Gallery Name Field -->
@@ -192,7 +192,7 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                                 <!-- Banner Image Field -->
                                 <div class="mb-4">
                                     <label for="banner_image" class="form-label">Banner Image</label>
-                                    <input type="file" id="banner_image"name="banner_image" class="form-control" accept="image/*">
+                                    <input type="file" id="banner_image" name="banner_image" class="form-control" accept="image/*">
                                 </div>
 
                                 <!-- Submit Button -->
