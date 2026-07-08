@@ -33,9 +33,6 @@
             $result = $artstmt->get_result();
         ?>
         <div class="main-content container py-4">
-            <section class="page-header">
-                <h1>Concept of Fumble's Gallery</h1>
-            </section>
 
             <div class="gallery row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
                 <?php while($row = mysqli_fetch_assoc($result)) { ?>
