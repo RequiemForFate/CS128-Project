@@ -44,19 +44,19 @@ if ($stmt) {
             <?php if ($result && mysqli_num_rows($result) > 0): ?>
                 <?php while ($row = mysqli_fetch_assoc($result)): ?>
                     <div class="col-sm-6 col-lg-4"> <!-- card column start -->
-                        <div class="card gallery-item h-100"> <!-- card start -->
-                            <a href="view_art.php?id=<?php echo htmlspecialchars($row['ArtID']); ?>">
+                        <a href="view_art.php?id=<?php echo htmlspecialchars($row['ArtID']); ?>" class="text-decoration-none">
+                            <div class="card gallery-item h-100 gallery-card"> <!-- card start -->
                                 <img
                                     src="images/<?php echo urlencode($row['image_name']); ?>"
                                     class="card-img-top gallery-img"
                                     alt="<?php echo htmlspecialchars($row['ArtName']); ?>"
                                     onerror="this.src='images/placeholder.png';">
-                            </a>
-                            <div class="card-body"> <!-- card-body start -->
-                                <h5 class="card-title mb-2"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
-                                <p class="card-text text-muted">Artwork ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
-                            </div> <!-- end card-body -->
-                        </div> <!-- end card -->
+                                <div class="card-body"> <!-- card-body start -->
+                                    <h5 class="card-title mb-2"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
+                                    <p class="card-text text-muted">Artwork ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
+                                </div> <!-- end card-body -->
+                            </div> <!-- end card -->
+                        </a>
                     </div> <!-- end card column -->
                 <?php endwhile; ?>
             <?php else: ?>
