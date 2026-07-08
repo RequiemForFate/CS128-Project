@@ -4,12 +4,13 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $username = !empty($_SESSION['username']) ? $_SESSION['username'] : 'Login';
-$profileImageSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cpath d="M18 50c3-10 11-15 14-15s11 5 14 15" fill="%23ffffff"/%3E%3C/svg%3E';
+$profileImageSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fi...';
 
 if (!empty($username) && $username !== 'Login' && extension_loaded('mysqli')) {
-    $conn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
-    if (!$conn->connect_error) {
-        $stmt = $conn->prepare("SELECT profile_picture FROM users WHERE name = ?");
+    // Use a local connection variable to avoid closing the global $conn used by pages that include this file
+    $menuConn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
+    if (!$menuConn->connect_error) {
+        $stmt = $menuConn->prepare("SELECT profile_picture FROM users WHERE name = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -19,7 +20,7 @@ if (!empty($username) && $username !== 'Login' && extension_loaded('mysqli')) {
                 $profileImageSrc = 'images/' . htmlspecialchars($row['profile_picture']);
             }
         }
-        $conn->close();
+        $menuConn->close();
     }
 }
 ?>
