@@ -75,13 +75,13 @@ if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
     }
 </style>
 <body>
-<div class="main-content">
-<div class="banner">
+<div class="main-content"> <!-- main-content start -->
+<div class="banner"> <!-- banner start -->
     <img src="<?php echo htmlspecialchars($bannerImage); ?>" class="banner-image" alt="Banner Image">
-    <div class="container alert-info text-center py-2">
+    <div class="container alert-info text-center py-2"> <!-- container start -->
         <h2><?php echo htmlspecialchars($galleryName); ?></h2>
-</div>
-</div>
-</div>
+    </div> <!-- end container -->
+</div> <!-- end banner -->
+</div> <!-- end main-content -->
 </body>
 </html>

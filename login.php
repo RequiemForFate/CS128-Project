@@ -43,15 +43,15 @@
 
 <body>
 
-<div class="container py-1">
+<div class="container py-1"> <!-- container start -->
         <?php include 'banner.php'; ?>
         <?php include 'menu.php'; ?>
-    </div>
+    </div> <!-- end container -->
 
     <!-- Main Content -->
-    <div class="main-content">
-        <div class="auth-page">
-            <div class="auth-card">
+    <div class="main-content"> <!-- main-content start -->
+        <div class="auth-page"> <!-- auth-page start -->
+            <div class="auth-card"> <!-- auth-card start -->
                 <h3>Login</h3>
 
                 <!-- Error Message -->
@@ -63,7 +63,7 @@
                 <?php endif; ?>
 
                 <!-- Login Form -->
-                <form class="auth-form" method="post">
+                <form class="auth-form" method="post"> <!-- auth-form start -->
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" id="username" name="username" class="form-control" required autofocus>
@@ -75,15 +75,15 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">Login</button>
-                </form>
+                </form> <!-- end auth-form -->
 
                 <!-- Sign Up Link -->
                 <p class="auth-link">
                     No account? <a href="signin.php">Sign up now</a>
                 </p>
-            </div>
-        </div>
-    </div> <!-- .main-content -->
+            </div> <!-- end auth-card -->
+        </div> <!-- end auth-page -->
+    </div> <!-- end main-content -->
 </body>
 </html>
 

@@ -12,7 +12,6 @@ if ($currentUsername === '') {
     exit();
 }
 
-
 function saveUploadedImage($file, $prefix) {
     if (empty($file['name']) || !is_uploaded_file($file['tmp_name'])) {
         return '';
@@ -129,14 +128,14 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
 
 <body>
     <!-- Header Section -->
-    <div class="container py-1">
+    <div class="container py-1"> <!-- container start -->
         <?php include 'banner.php'; ?>
         <?php include 'menu.php'; ?>
-    </div>
+    </div> <!-- end container -->
 
     <!-- Main Content -->
-    <div class="main-content">
-        <div class="container py-4">
+    <div class="main-content"> <!-- main-content start -->
+        <div class="container py-4"> <!-- container start -->
             <!-- Status Message -->
             <?php if ($message !== ''): ?>
                 <div class="alert alert-info alert-dismissible fade show" role="alert">
@@ -146,29 +145,29 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
             <?php endif; ?>
 
             <!-- Profile Layout -->
-            <div class="row g-4">
+            <div class="row g-4"> <!-- row start -->
                 <!-- Profile Card -->
-                <div class="col-lg-4">
-                    <div class="card shadow-sm">
+                <div class="col-lg-4"> <!-- col start -->
+                    <div class="card shadow-sm"> <!-- card start -->
                         <img src="<?php echo htmlspecialchars($bannerImageSrc); ?>" 
                             class="card-img-top" 
                             alt="Profile banner" 
                             style="height: 180px; object-fit: cover;">
-                        <div class="card-body text-center">
+                        <div class="card-body text-center"> <!-- card-body start -->
                             <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" 
                                 alt="Profile picture" 
                                 class="rounded-circle border border-3 border-light shadow" 
                                 style="width: 110px; height: 110px; object-fit: cover; margin-top: -65px;">
                             <h3 class="mt-3 mb-1"><?php echo htmlspecialchars($userData['name']); ?></h3>
                             <p class="text-muted mb-0"><?php echo htmlspecialchars($galleryName); ?></p>
-                        </div>
-                    </div>
-                </div>
+                        </div> <!-- end card-body -->
+                    </div> <!-- end card -->
+                </div> <!-- end col -->
 
                 <!-- Edit Profile Form -->
-                <div class="col-lg-8">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
+                <div class="col-lg-8"> <!-- col start -->
+                    <div class="card shadow-sm"> <!-- card start -->
+                        <div class="card-body"> <!-- card-body start -->
                             <h3 class="card-title mb-4">Edit Profile</h3>
                             <form method="post" enctype="multipart/form-data">
                                 <!-- Username Field -->
@@ -180,7 +179,7 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                                 <!-- Profile Picture Field -->
                                 <div class="mb-3">
                                     <label for="profile_picture" class="form-label">Profile Picture</label>
-                                    <input type="file" id="profile_picture"name="profile_picture" class="form-control" accept="image/*">
+                                    <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
                                 </div>
 
                                 <!-- Gallery Name Field -->
@@ -192,18 +191,18 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                                 <!-- Banner Image Field -->
                                 <div class="mb-4">
                                     <label for="banner_image" class="form-label">Banner Image</label>
-                                    <input type="file" id="banner_image"name="banner_image" class="form-control" accept="image/*">
+                                    <input type="file" id="banner_image" name="banner_image" class="form-control" accept="image/*">
                                 </div>
 
                                 <!-- Submit Button -->
                                 <button type="submit" class="btn btn-primary btn-lg w-100">Save Profile</button>
                             </form>
-                        </div>
-                    </div>
-                </div>
-            </div> <!-- .row -->
-        </div> <!-- .container -->
-    </div> <!-- .main-content -->
+                        </div> <!-- end card-body -->
+                    </div> <!-- end card -->
+                </div> <!-- end col -->
+            </div> <!-- end row -->
+        </div> <!-- end container -->
+    </div> <!-- end main-content -->
 </body>
 </html>
 

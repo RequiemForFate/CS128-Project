@@ -7,7 +7,6 @@ $username = !empty($_SESSION['username']) ? $_SESSION['username'] : 'Login';
 $profileImageSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fi...';
 
 if (!empty($username) && $username !== 'Login' && extension_loaded('mysqli')) {
-    // Use a local connection variable to avoid closing the global $conn
     $menuConn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
     if (!$menuConn->connect_error) {
         $stmt = $menuConn->prepare("SELECT profile_picture FROM users WHERE name = ?");
@@ -27,7 +26,7 @@ if (!empty($username) && $username !== 'Login' && extension_loaded('mysqli')) {
 
 <!-- The Side Menu -->
 <button id="sidebarToggle" class="sidebar-toggle" aria-expanded="true" aria-controls="sidebar">☰ Menu</button>
-<div class="sidebar" id="sidebar">
+<div class="sidebar" id="sidebar"> <!-- sidebar start -->
     <a href="profile.php" class="profile-link">
         <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" alt="Profile" class="profile-avatar">
         <span><?php echo htmlspecialchars($username); ?></span>
@@ -35,7 +34,7 @@ if (!empty($username) && $username !== 'Login' && extension_loaded('mysqli')) {
     <a href="Artwork.php">Gallery</a><br>
     <a href="imageform.php">Insert Image</a><br>
     <a href="logout.php">Logout</a><br>
-</div>
+</div> <!-- end sidebar -->
 <script>
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
