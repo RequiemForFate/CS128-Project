@@ -140,10 +140,6 @@
                                         <div class="card-body text-center">
                                             <p class="card-text small">Art ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
                                             <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
-                                            <a href="imageform.php?ArtID=<?php echo htmlspecialchars($row['ArtID']); ?>"
-                                            class="btn btn-sm btn-primary">
-                                            Select
-                                            </a>
                                         </div>
                                     </div>
                                 </div>

@@ -1,16 +1,39 @@
 <?php
 session_start();
 
-$conn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+$Artconn = null;
+$galleryItems = [];
+
+if (extension_loaded('mysqli')) {
+    $Artconn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
+    if (!$Artconn->connect_error) {
+        $stmt = $Artconn->prepare("SELECT * FROM Artdata ORDER BY ArtID DESC");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $galleryItems[] = $row;
+        }
+    }
 }
 
-// Fetch all artwork
-$sql = "SELECT * FROM Artdata";
-$result = $conn->query($sql);
-if (!$result) {
-    die("Query failed: " . $conn->error);
+function resolveImagePath($imageName) {
+    if (empty($imageName)) {
+        return '';
+    }
+
+    $candidatePaths = [
+        'images/' . $imageName,
+        $imageName,
+        'images/' . basename($imageName),
+    ];
+
+    foreach ($candidatePaths as $path) {
+        if ($path !== '' && file_exists($path)) {
+            return $path;
+        }
+    }
+
+    return $candidatePaths[0];
 }
 ?>
 
@@ -36,39 +59,43 @@ if (!$result) {
     <div class="main-content">
         <div class="container">
             <div class="gallery-wrapper">
-                <h1>Gallery</h1>
 
                 <!-- Gallery Grid -->
                 <div class="row row-cols-1 row-cols-lg-3 row-cols-md-2 g-4 gallery-row">
-                    <?php while($row = $result->fetch_assoc()) { ?>
-                        <div class="col">
-                            <div class="card h-100">
-                                <a href="veiw_art.php?id=<?php echo urlencode($row['ArtID']); ?>" class="gallery-link">
-                                    <img 
-                                        src="images/<?php echo htmlspecialchars($row['image_name']); ?>" 
-                                        class="card-img-top"
-                                        alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
-                                </a>
-                                <div class="card-body text-center">
-                                    <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
-                                    <a href="veiw_art.php?id=<?php echo urlencode($row['ArtID']); ?>" class="btn btn-sm btn-primary">
-                                        View
+                    <?php if (!empty($galleryItems)): ?>
+                        <?php foreach ($galleryItems as $row): ?>
+                            <?php $imagePath = resolveImagePath($row['image_name'] ?? ''); ?>
+                            <div class="col">
+                                <div class="card h-100">
+                                    <a href="veiw_art.php?id=<?php echo urlencode($row['ArtID']); ?>" class="gallery-link">
+                                        <img
+                                            src="<?php echo htmlspecialchars($imagePath); ?>"
+                                            class="card-img-top"
+                                            alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
                                     </a>
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
+                                        <a href="veiw_art.php?id=<?php echo urlencode($row['ArtID']); ?>" onclick="window.location.href='veiw_art.php?id=<?php echo urlencode($row['ArtID']); ?>'; return false;" class="btn btn-sm btn-primary">
+                                            View
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="col-12">
+                            <div class="alert alert-info">No artwork found yet. Add items from the upload page first.</div>
                         </div>
-                    <?php } ?>
+                    <?php endif; ?>
                 </div> <!-- .gallery-row -->
             </div> <!-- .gallery-wrapper -->
         </div> <!-- .container -->
     </div> <!-- .main-content -->
 
     <?php
-        // Clean up
-        if (isset($result) && $result instanceof mysqli_result) {
-            $result->free();
+        if ($Artconn instanceof mysqli) {
+            $Artconn->close();
         }
-        $conn->close();
     ?>
 </body>
 </html>

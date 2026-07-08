@@ -12,9 +12,7 @@ if ($currentUsername === '') {
     exit();
 }
 
-/**
- * Save uploaded image file
- */
+
 function saveUploadedImage($file, $prefix) {
     if (empty($file['name']) || !is_uploaded_file($file['tmp_name'])) {
         return '';
@@ -153,14 +151,14 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                 <div class="col-lg-4">
                     <div class="card shadow-sm">
                         <img src="<?php echo htmlspecialchars($bannerImageSrc); ?>" 
-                             class="card-img-top" 
-                             alt="Profile banner" 
-                             style="height: 180px; object-fit: cover;">
+                            class="card-img-top" 
+                            alt="Profile banner" 
+                            style="height: 180px; object-fit: cover;">
                         <div class="card-body text-center">
                             <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" 
-                                 alt="Profile picture" 
-                                 class="rounded-circle border border-3 border-light shadow" 
-                                 style="width: 110px; height: 110px; object-fit: cover; margin-top: -65px;">
+                                alt="Profile picture" 
+                                class="rounded-circle border border-3 border-light shadow" 
+                                style="width: 110px; height: 110px; object-fit: cover; margin-top: -65px;">
                             <h3 class="mt-3 mb-1"><?php echo htmlspecialchars($userData['name']); ?></h3>
                             <p class="text-muted mb-0"><?php echo htmlspecialchars($galleryName); ?></p>
                         </div>
@@ -176,44 +174,25 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                                 <!-- Username Field -->
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Username</label>
-                                    <input type="text" 
-                                           id="username"
-                                           name="username" 
-                                           class="form-control" 
-                                           value="<?php echo htmlspecialchars($userData['name']); ?>" 
-                                           required>
+                                    <input type="text" id="username" name="username" class="form-control" value="<?php echo htmlspecialchars($userData['name']); ?>" required>
                                 </div>
 
                                 <!-- Profile Picture Field -->
                                 <div class="mb-3">
                                     <label for="profile_picture" class="form-label">Profile Picture</label>
-                                    <input type="file" 
-                                           id="profile_picture"
-                                           name="profile_picture" 
-                                           class="form-control" 
-                                           accept="image/*">
-                                    <small class="text-muted">Accepted formats: JPG, PNG, GIF, WebP</small>
+                                    <input type="file" id="profile_picture"name="profile_picture" class="form-control" accept="image/*">
                                 </div>
 
                                 <!-- Gallery Name Field -->
                                 <div class="mb-3">
                                     <label for="gallery_name" class="form-label">Gallery Name</label>
-                                    <input type="text" 
-                                           id="gallery_name"
-                                           name="gallery_name" 
-                                           class="form-control" 
-                                           value="<?php echo htmlspecialchars($galleryName); ?>">
+                                    <input type="text" id="gallery_name" name="gallery_name" class="form-control" value="<?php echo htmlspecialchars($galleryName); ?>">
                                 </div>
 
                                 <!-- Banner Image Field -->
                                 <div class="mb-4">
                                     <label for="banner_image" class="form-label">Banner Image</label>
-                                    <input type="file" 
-                                           id="banner_image"
-                                           name="banner_image" 
-                                           class="form-control" 
-                                           accept="image/*">
-                                    <small class="text-muted">Accepted formats: JPG, PNG, GIF, WebP</small>
+                                    <input type="file" id="banner_image"name="banner_image" class="form-control" accept="image/*">
                                 </div>
 
                                 <!-- Submit Button -->
