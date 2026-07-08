@@ -29,10 +29,15 @@ if ($id === '') {
 } else {
     $sql = "SELECT * FROM Artdata WHERE ArtID = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
+    if ($stmt) {
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+    } else {
+        $errorMessage = 'Database error: ' . $conn->error;
+        $row = null;
+    }
 }
 
 if (!$row) {
@@ -48,17 +53,21 @@ if (!$row) {
 
     // Previous: ArtID < current, order by numeric value desc
     $prevStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE CAST(ArtID AS UNSIGNED) < CAST(? AS UNSIGNED) ORDER BY CAST(ArtID AS UNSIGNED) DESC LIMIT 1");
-    $prevStmt->bind_param("s", $currentID);
-    $prevStmt->execute();
-    $prevResult = $prevStmt->get_result();
-    $prev = $prevResult->fetch_assoc();
+    if ($prevStmt) {
+        $prevStmt->bind_param("s", $currentID);
+        $prevStmt->execute();
+        $prevResult = $prevStmt->get_result();
+        $prev = $prevResult->fetch_assoc();
+    }
 
     // Next: ArtID > current, order by numeric value asc
     $nextStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE CAST(ArtID AS UNSIGNED) > CAST(? AS UNSIGNED) ORDER BY CAST(ArtID AS UNSIGNED) ASC LIMIT 1");
-    $nextStmt->bind_param("s", $currentID);
-    $nextStmt->execute();
-    $nextResult = $nextStmt->get_result();
-    $next = $nextResult->fetch_assoc();
+    if ($nextStmt) {
+        $nextStmt->bind_param("s", $currentID);
+        $nextStmt->execute();
+        $nextResult = $nextStmt->get_result();
+        $next = $nextResult->fetch_assoc();
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -116,7 +125,7 @@ if (!$row) {
                         <!-- Navigation Buttons -->
                         <div class="d-flex justify-content-between mt-5 gap-2"> <!-- nav div start -->
                             <?php if ($prev) { ?>
-                                <a href="veiw_art.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
+                                <a href="view_art.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
                                     ← Previous
                                 </a>
                             <?php } else { ?>
@@ -124,7 +133,7 @@ if (!$row) {
                             <?php } ?>
 
                             <?php if ($next) { ?>
-                                <a href="veiw_art.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
+                                <a href="view_art.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
                                     Next →
                                 </a>
                             <?php } ?>

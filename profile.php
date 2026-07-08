@@ -41,17 +41,20 @@ $userData = [
 ];
 
 $stmt = $conn->prepare("SELECT name, profile_picture, gallery_name, banner_image FROM users WHERE name = ?");
-$stmt->bind_param("s", $currentUsername);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $userData = [
-        'name' => $row['name'] ?? $currentUsername,
-        'profile_picture' => $row['profile_picture'] ?? '',
-        'gallery_name' => $row['gallery_name'] ?? '',
-        'banner_image' => $row['banner_image'] ?? ''
-    ];
+if ($stmt) {
+    $stmt->bind_param("s", $currentUsername);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $userData = [
+            'name' => $row['name'] ?? $currentUsername,
+            'profile_picture' => $row['profile_picture'] ?? '',
+            'gallery_name' => $row['gallery_name'] ?? '',
+            'banner_image' => $row['banner_image'] ?? ''
+        ];
+    }
+    $stmt->close();
 }
 
 // Handle form submission
@@ -65,40 +68,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Check if username is already taken
         $checkStmt = $conn->prepare("SELECT name FROM users WHERE name = ? AND name != ?");
-        $checkStmt->bind_param("ss", $newUsername, $currentUsername);
-        $checkStmt->execute();
-        $checkResult = $checkStmt->get_result();
+        if ($checkStmt) {
+            $checkStmt->bind_param("ss", $newUsername, $currentUsername);
+            $checkStmt->execute();
+            $checkResult = $checkStmt->get_result();
 
-        if ($checkResult->num_rows > 0) {
-            $message = 'That username is already taken.';
-        } else {
-            // Handle file uploads
-            $profilePicture = $userData['profile_picture'];
-            $uploadedProfilePicture = saveUploadedImage($_FILES['profile_picture'] ?? [], 'profile');
-            if ($uploadedProfilePicture !== '') {
-                $profilePicture = $uploadedProfilePicture;
-            }
-
-            $bannerImage = $userData['banner_image'];
-            $uploadedBannerImage = saveUploadedImage($_FILES['banner_image'] ?? [], 'banner');
-            if ($uploadedBannerImage !== '') {
-                $bannerImage = $uploadedBannerImage;
-            }
-
-            // Update database
-            $updateStmt = $conn->prepare("UPDATE users SET name = ?, profile_picture = ?, gallery_name = ?, banner_image = ? WHERE name = ?");
-            $updateStmt->bind_param("sssss", $newUsername, $profilePicture, $galleryName, $bannerImage, $currentUsername);
-            if ($updateStmt->execute()) {
-                $_SESSION['username'] = $newUsername;
-                $currentUsername = $newUsername;
-                $userData['name'] = $newUsername;
-                $userData['profile_picture'] = $profilePicture;
-                $userData['gallery_name'] = $galleryName;
-                $userData['banner_image'] = $bannerImage;
-                $message = 'Profile updated successfully.';
+            if ($checkResult->num_rows > 0) {
+                $message = 'That username is already taken.';
             } else {
-                $message = 'Unable to update your profile.';
+                // Handle file uploads
+                $profilePicture = $userData['profile_picture'];
+                $uploadedProfilePicture = saveUploadedImage($_FILES['profile_picture'] ?? [], 'profile');
+                if ($uploadedProfilePicture !== '') {
+                    $profilePicture = $uploadedProfilePicture;
+                }
+
+                $bannerImage = $userData['banner_image'];
+                $uploadedBannerImage = saveUploadedImage($_FILES['banner_image'] ?? [], 'banner');
+                if ($uploadedBannerImage !== '') {
+                    $bannerImage = $uploadedBannerImage;
+                }
+
+                // Update database
+                $updateStmt = $conn->prepare("UPDATE users SET name = ?, profile_picture = ?, gallery_name = ?, banner_image = ? WHERE name = ?");
+                if ($updateStmt) {
+                    $updateStmt->bind_param("sssss", $newUsername, $profilePicture, $galleryName, $bannerImage, $currentUsername);
+                    if ($updateStmt->execute()) {
+                        $_SESSION['username'] = $newUsername;
+                        $currentUsername = $newUsername;
+                        $userData['name'] = $newUsername;
+                        $userData['profile_picture'] = $profilePicture;
+                        $userData['gallery_name'] = $galleryName;
+                        $userData['banner_image'] = $bannerImage;
+                        $message = 'Profile updated successfully.';
+                    } else {
+                        $message = 'Unable to update your profile.';
+                    }
+                    $updateStmt->close();
+                } else {
+                    $message = 'Database error: ' . $conn->error;
+                }
             }
+            $checkStmt->close();
+        } else {
+            $message = 'Database error: ' . $conn->error;
         }
     }
 }
@@ -106,11 +119,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Prepare image sources
 $profileImageSrc = !empty($userData['profile_picture'])
     ? 'images/' . htmlspecialchars($userData['profile_picture'])
-    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cellipse cx="32" cy="48" rx="20" ry="16" fill="%23ffffff"/%3E%3C/svg%3E';
+    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cpath d="M 8 56 A 24 24 0 0 1 56 56" fill="%23ffffff"/%3E%3C/svg%3E';
 
 $bannerImageSrc = !empty($userData['banner_image'])
     ? 'images/' . htmlspecialchars($userData['banner_image'])
-    : 'banner.jpg';
+    : 'images/banner.jpg';
 
 $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'My Gallery';
 ?>
