@@ -4,14 +4,14 @@ $bannerImage = 'images/banner.jpg'; // Default banner image
 if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
     $bannerconn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
     if (!$bannerconn->connect_error) {
-        $stmt = $bannerconn->prepare("SELECT banner_image FROM users WHERE name = ?");
-        $stmt->bind_param("s", $_SESSION['username']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            if (!empty($row['banner_image'])) {
-                $bannerImage = 'images/' . htmlspecialchars($row['banner_image']);
+        $bannerstmt = $bannerconn->prepare("SELECT banner_image FROM users WHERE name = ?");
+        $bannerstmt->bind_param("s", $_SESSION['username']);
+        $bannerstmt->execute();
+        $bannerresult = $bannerstmt->get_result();
+        if ($bannerresult->num_rows > 0) {
+            $bannerrow = $bannerresult->fetch_assoc();
+            if (!empty($bannerrow['banner_image'])) {
+                $bannerImage = 'images/' . htmlspecialchars($bannerrow['banner_image']);
             }
         }
         $bannerconn->close();
@@ -22,12 +22,12 @@ $galleryName = 'gallery'; // Default gallery name
 if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
     $galleryconn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
     if (!$galleryconn->connect_error) {
-        $stmt = $galleryconn->prepare("SELECT gallery_name FROM users WHERE name = ?");
-        $stmt->bind_param("s", $_SESSION['username']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
+        $gallerystmt = $galleryconn->prepare("SELECT gallery_name FROM users WHERE name = ?");
+        $gallerystmt->bind_param("s", $_SESSION['username']);
+        $gallerystmt->execute();
+        $galleryresult = $gallerystmt->get_result();
+        if ($galleryresult->num_rows > 0) {
+            $row = $galleryresult->fetch_assoc();
             if (!empty($row['gallery_name'])) {
                 $galleryName = htmlspecialchars($row['gallery_name']);
             }

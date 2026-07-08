@@ -10,14 +10,14 @@ if (!empty($username) && $username !== 'Login' && extension_loaded('mysqli')) {
     // Use a local connection variable to avoid closing the global $conn
     $menuConn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
     if (!$menuConn->connect_error) {
-        $stmt = $menuConn->prepare("SELECT profile_picture FROM users WHERE name = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            if (!empty($row['profile_picture'])) {
-                $profileImageSrc = 'images/' . htmlspecialchars($row['profile_picture']);
+        $profilestmt = $menuConn->prepare("SELECT profile_picture FROM users WHERE name = ?");
+        $profilestmt->bind_param("s", $username);
+        $profilestmt->execute();
+        $profileresult = $profilestmt->get_result();
+        if ($profileresult->num_rows > 0) {
+            $profilerow = $profileresult->fetch_assoc();
+            if (!empty($profilerow['profile_picture'])) {
+                $profileImageSrc = 'images/' . htmlspecialchars($profilerow['profile_picture']);
             }
         }
         $menuConn->close();

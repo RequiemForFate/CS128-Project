@@ -23,27 +23,36 @@
                 die("Connection failed: " . mysqli_connect_error());
             }
 
-            $stmt = $conn->prepare("SELECT * FROM Artdata WHERE owner = ? ORDER BY ArtID DESC");
-            $stmt->bind_param("s", $currentUser);
-            $stmt->execute();
-            $result = $stmt->get_result();
         ?>
-    <div class=" py-1">
-            <?php include 'menu.php'; ?>
-            <?php include 'banner.php'; ?>
-    <div class="gallery-container row-cols-5">
-        <?php while($row = mysqli_fetch_assoc($result)) { ?>
-    <div class="photo">
-        <img src="images/<?php echo htmlspecialchars($row['image_name']); ?>" alt="Image">
-        <h3><?php echo htmlspecialchars($row['ArtName']); ?></h3>
-        <p><strong>Image ID:</strong> <?php echo htmlspecialchars($row['ArtID']); ?></p>
-        <p><?php echo htmlspecialchars($row['ArtDes']); ?></p>
-    </div>
+    <div class="py-1">
+        <?php include 'banner.php'; ?>
+        <?php include 'menu.php'; ?>
+        <?php
+            $artstmt = $conn->prepare("SELECT * FROM Artdata ORDER BY ArtID DESC");
+            $artstmt->execute();
+            $result = $artstmt->get_result();
+        ?>
+        <div class="main-content container py-4">
+            <section class="page-header">
+                <h1>Concept of Fumble's Gallery</h1>
+            </section>
 
-    <?php } ?>
-</div>
+            <div class="gallery row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+                <?php while($row = mysqli_fetch_assoc($result)) { ?>
+                <div class="gallery-card">
+                    <a href="view_art.php?id=<?php echo $row['ArtID']; ?>">
+                        <img
+                            src="images/<?php echo htmlspecialchars($row['image_name']); ?>"
+                            class="gallery-img"
+                            alt="<?php echo htmlspecialchars($row['ArtName'] ?: 'Artwork'); ?>">
+                    </a>
+                </div>
+                <?php } ?>
+            </div>
+        </div>
+    </div>
 <?php
-    $stmt->close();
+    $artstmt->close();
     $conn->close();
 ?>
     </body>

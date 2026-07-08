@@ -1,4 +1,5 @@
 <?php
+session_start();
 function resolveImagePath($imageName) {
     if (empty($imageName)) {
         return '';
@@ -31,10 +32,10 @@ if ($id <= 0) {
     $row = null;
 } else {
     $sql = "SELECT * FROM Artdata WHERE ArtID = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $veiwstmt = $conn->prepare($sql);
+    $veiwstmt->bind_param("i", $id);
+    $veiwstmt->execute();
+    $result = $veiwstmt->get_result();
     $row = $result->fetch_assoc();
 }
 
@@ -78,7 +79,13 @@ if (!$row) {
     <!-- Header Section -->
     <div class="container py-1">
         <?php include 'banner.php'; ?>
-        <?php include 'menu.php'; ?>
+        <?php
+        $veiwstmt = $conn->prepare($sql);
+        $veiwstmt->bind_param("i", $id);
+        $veiwstmt->execute();
+        $result = $veiwstmt->get_result();
+        $row = $result->fetch_assoc();
+        ?>
     </div>
 
     <!-- Main Content -->
@@ -117,7 +124,7 @@ if (!$row) {
                     <!-- Navigation Buttons -->
                     <div class="d-flex justify-content-between mt-5 gap-2">
                         <?php if ($prev) { ?>
-                            <a href="veiw_art.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
+                            <a href="view_art.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
                                 ← Previous
                             </a>
                         <?php } else { ?>
@@ -125,7 +132,7 @@ if (!$row) {
                         <?php } ?>
 
                         <?php if ($next) { ?>
-                            <a href="veiw_art.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
+                            <a href="view_art.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
                                 Next →
                             </a>
                         <?php } ?>

@@ -47,7 +47,7 @@
             if($stmt->execute()){
                 echo "Insert success!";
             } else {
-                echo "Insert fail!";
+                echo "Insert fail: " . $stmt->error;
             }
 
         } else if(isset($_POST['Update'])){
