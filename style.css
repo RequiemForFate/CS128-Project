@@ -235,3 +235,64 @@ button {
 .photo p {
     margin-top: 10px;
 }
+
+
+/* Main content wrapper */
+
+.main-content {
+    flex: 1;
+    margin-left: 250px;
+    transition: margin-left 0.25s ease;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.sidebar-closed .main-content {
+    margin-left: 0;
+}
+
+.auth-page {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 520px;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.auth-form {
+    width: 100%;
+}
+
+.auth-form .form-control {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    min-height: 44px;
+}
+
+.auth-form .btn {
+    width: 100%;
+    padding: 10px 12px;
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.auth-link a {
+    color: #4563ea;
+    text-decoration: none;
+    background-color: #575757;
+}
