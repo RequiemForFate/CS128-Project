@@ -94,69 +94,66 @@
     <?php include 'banner.php'; ?>
     <?php include 'menu.php'; ?>
     <div class="main-content">
-    <div class="container">
-        <div class="form-container">
-            <div class="card">
-            <h3>Portfolio Application</h3>
-            <?php if ($dbError !== ''): ?>
-                <div class="alert alert-warning"><?php echo htmlspecialchars($dbError); ?></div>
-            <?php endif; ?>
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
-            
-                <label>Art ID</label>
-                <input type="text" name="ArtID" value="<?php echo isset($_POST['ArtID']) ? htmlspecialchars($_POST['ArtID']) : ''; ?>" required class="form-control"><br>
+        <div class="container">
+            <div class="form-container">
+                <div class="card">
+                    <h3>Portfolio Application</h3>
+                    <?php if ($dbError !== ''): ?>
+                        <div class="alert alert-warning"><?php echo htmlspecialchars($dbError); ?></div>
+                    <?php endif; ?>
+                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
 
-                <label>Art Name</label>
-                <input type="text" name="ArtName" value="<?php echo isset($_POST['ArtName']) ? htmlspecialchars($_POST['ArtName']) : ''; ?>" class="form-control"><br>
+                        <label>Art ID</label>
+                        <input type="text" name="ArtID" value="<?php echo isset($_POST['ArtID']) ? htmlspecialchars($_POST['ArtID']) : ''; ?>" required class="form-control"><br>
 
-                <label>Art Description</label>
-                <input type="text" name="ArtDes" value="<?php echo isset($_POST['ArtDes']) ? htmlspecialchars($_POST['ArtDes']) : ''; ?>" class="form-control"><br>
+                        <label>Art Name</label>
+                        <input type="text" name="ArtName" value="<?php echo isset($_POST['ArtName']) ? htmlspecialchars($_POST['ArtName']) : ''; ?>" class="form-control"><br>
 
-                <input type="file" name="filUpload" id="image" accept="image/*"><br><br>
-                <div class="btn btn-group d-flex justify-content-center">
-                <button class="btn btn-primary" name="Insert" value="Insert">Insert</button>
-                <button class="btn btn-warning" name="Update" value="Update">Update</button>
-                <button class="btn btn-danger" name="Delete" value="Delete">Delete</button> </div>
-            </form>
-            </div>
-            <br>
-<div class="gallery-wrapper">
-        <h1>Gallery preview</h1>
+                        <label>Art Description</label>
+                        <input type="text" name="ArtDes" value="<?php echo isset($_POST['ArtDes']) ? htmlspecialchars($_POST['ArtDes']) : ''; ?>" class="form-control"><br>
 
-            <div class="row row-cols-1 row-cols-lg-3 row-cols-md-2 g-4 gallery-row">
-                <?php
-                    if ($conn !== null) {
-                        $sql = "SELECT * FROM Artdata";
-                        $result = $conn->query($sql);
-                        if($result && $result->num_rows > 0){
-                            while($row = $result->fetch_assoc()){
-                ?>
-                        <div class="col">
-                            <div class="card h-100">
-                                <img src="images/<?php echo htmlspecialchars($row['image_name']); ?>"
-                                    class="card-img-top"
-                                    alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
-                                <div class="card-body text-center">
-                                    <p class="card-text small">Art ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
-                                    <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
-                                    <a href="imageform.php?ArtID=<?php echo htmlspecialchars($row['ArtID']); ?>"
-                                    class="btn btn-sm btn-primary">
-                                    Select
-                                    </a>
-                                </div>
-                            </div>
+                        <input type="file" name="filUpload" id="image" accept="image/*"><br><br>
+                        <div class="btn-group d-flex justify-content-center">
+                            <button class="btn btn-primary" name="Insert" value="Insert">Insert</button>
+                            <button class="btn btn-warning" name="Update" value="Update">Update</button>
+                            <button class="btn btn-danger" name="Delete" value="Delete">Delete</button>
                         </div>
-                    <?php }
-                        }
-                    } ?>
-            </div>
-            </div>
-            </div>
-            </div>
-            </div>
-        </div>
-    </div>
-    </div>
-    </div>
+                    </form>
+                </div>
+                <br>
+                <div class="gallery-wrapper">
+                    <h1>Gallery preview</h1>
+
+                    <div class="row row-cols-1 row-cols-lg-3 row-cols-md-2 g-4 gallery-row">
+                        <?php
+                            if ($conn !== null) {
+                                $sql = "SELECT * FROM Artdata";
+                                $result = $conn->query($sql);
+                                if($result && $result->num_rows > 0){
+                                    while($row = $result->fetch_assoc()){
+                        ?>
+                                <div class="col">
+                                    <div class="card h-100">
+                                        <img src="images/<?php echo htmlspecialchars($row['image_name']); ?>"
+                                            class="card-img-top"
+                                            alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
+                                        <div class="card-body text-center">
+                                            <p class="card-text small">Art ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
+                                            <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
+                                            <a href="imageform.php?ArtID=<?php echo htmlspecialchars($row['ArtID']); ?>"
+                                            class="btn btn-sm btn-primary">
+                                            Select
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php }
+                                }
+                            } ?>
+                    </div> <!-- .row -->
+                </div> <!-- .gallery-wrapper -->
+            </div> <!-- .form-container -->
+        </div> <!-- .container -->
+    </div> <!-- .main-content -->
 </body>
 </html>
