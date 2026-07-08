@@ -1,57 +1,130 @@
-<?php 
-  // connect php to mysql
-  $conn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
-  if ($conn->connect_error){
-    die ("CANT CONNECT TO DATABASE");
-  }
-  // check if user had made request to backend
-  //user click sign in
-  if ($_SERVER['REQUEST_METHOD'] == 'POST'){
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
-    $confirmPassword = trim($_POST['confirmpassword'] ?? '');
-    if ($password !== $confirmPassword){
-        echo "TRY AGAIN";
-        echo "<a href='signin.php'>Sign In</a>";
-        exit();
+<?php
+    session_start();
+
+    $conn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
     }
-    $stmt = $conn->prepare("INSERT INTO users(name, password) VALUES(?, ?)");
-    $stmt->bind_param("ss", $username, $password);
-    if ($stmt->execute()){
-        header ("Location: login.php");
-        exit();
-    } else{
-        echo "insert fail";
+
+    $signupError = '';
+    $signupSuccess = false;
+
+    // Handle form submission
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $username = trim($_POST['username'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+        $confirmPassword = trim($_POST['confirmpassword'] ?? '');
+
+        // Validation
+        if (empty($username) || empty($password) || empty($confirmPassword)) {
+            $signupError = "All fields are required.";
+        } elseif (strlen($password) < 6) {
+            $signupError = "Password must be at least 6 characters long.";
+        } elseif ($password !== $confirmPassword) {
+            $signupError = "Passwords do not match.";
+        } else {
+            // Check if username already exists
+            $checkStmt = $conn->prepare("SELECT name FROM users WHERE name = ?");
+            $checkStmt->bind_param("s", $username);
+            $checkStmt->execute();
+            $checkResult = $checkStmt->get_result();
+
+            if ($checkResult->num_rows > 0) {
+                $signupError = "Username is already taken.";
+            } else {
+                // Insert new user
+                $stmt = $conn->prepare("INSERT INTO users(name, password) VALUES(?, ?)");
+                $stmt->bind_param("ss", $username, $password);
+                if ($stmt->execute()) {
+                    $signupSuccess = true;
+                    $_SESSION['username'] = $username;
+                    header("Location: profile.php");
+                    exit();
+                } else {
+                    $signupError = "Sign up failed. Please try again.";
+                }
+            }
+        }
     }
-  }
 ?>
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Sign In page</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link href="style.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="style.css" rel="stylesheet">
 </head>
+
 <body>
-  <div class="container py-1">
-    <?php include 'banner.php'; ?>
-    <?php include 'menu.php'; ?>
-  </div>
-  <div class="main-content">
-    <div class="auth-page">
-      <div class="auth-card">
-        <h3>Sign In</h3>
-        <form class="auth-form" method="post">
-          <label>Username</label><br>
-          <input name="username" class="form-control" required><br>
-          <label>Password</label><br>
-          <input type="password" name="password" class="form-control" required><br>
-          <label>Confirm Password</label><br>
-          <input type="password" name="confirmpassword" class="form-control" required><br>
-          <button class="btn btn-primary" name="signIn">Sign In</button>
-        </form>
-      </div>
+    <!-- Header Section -->
+    <div class="container py-1">
+        <?php include 'banner.php'; ?>
+        <?php include 'menu.php'; ?>
     </div>
-  </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="auth-page">
+            <div class="auth-card">
+                <h3>Sign Up</h3>
+
+                <!-- Error Message -->
+                <?php if (!empty($signupError)): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <?php echo htmlspecialchars($signupError); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Sign Up Form -->
+                <form class="auth-form" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" 
+                               id="username"
+                               name="username" 
+                               class="form-control" 
+                               required
+                               autofocus
+                               value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" 
+                               id="password"
+                               name="password" 
+                               class="form-control" 
+                               required>
+                        <small class="text-muted">Minimum 6 characters</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="confirmpassword" class="form-label">Confirm Password</label>
+                        <input type="password" 
+                               id="confirmpassword"
+                               name="confirmpassword" 
+                               class="form-control" 
+                               required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                </form>
+
+                <!-- Login Link -->
+                <p class="auth-link">
+                    Already have an account? <a href="login.php">Login here</a>
+                </p>
+            </div>
+        </div>
+    </div> <!-- .main-content -->
 </body>
 </html>
+
+<?php
+    $conn->close();
+?>

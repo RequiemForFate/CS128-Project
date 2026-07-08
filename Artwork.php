@@ -1,60 +1,74 @@
+<?php
+session_start();
+
+$conn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Fetch all artwork
+$sql = "SELECT * FROM Artdata";
+$result = $conn->query($sql);
+if (!$result) {
+    die("Query failed: " . $conn->error);
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Artwork</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-        <link href="style.css" rel="stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="style.css" rel="stylesheet">
+</head>
 
-    </head>
-    <body>
-        <?php
-            // Use a local connection variable to avoid interfering with other includes
-            $artConn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
-            if ($artConn->connect_error) {
-                die("Connection failed: " . $artConn->connect_error);
-            }
-
-            $sql = "SELECT * FROM Artdata";
-            $result = $artConn->query($sql);
-            if (!$result) {
-                die("Query failed: " . $artConn->error);
-            }
-        ?>
+<body>
+    <!-- Header Section -->
     <div class="py-1">
-            <?php include 'banner.php'; ?>
-            <?php include 'menu.php';?>
+        <?php include 'banner.php'; ?>
+        <?php include 'menu.php'; ?>
     </div>
+
+    <!-- Main Content -->
     <div class="main-content">
-    <div class="container mt-4">
-    <div class="row g-4">
-        <?php while($row = $result->fetch_assoc()) { ?>
-        <div class="col-md-4">
-            <div class="gallery h-100">
-                <a href="veiw_art.php?id=<?php echo urlencode($row['ArtID']); ?>">
-                    <img 
-                    src="images/<?php echo htmlspecialchars($row['image_name']); ?>" 
-                    class="card-img-top gallery-img img-fluid"
-                    alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
-                </a>
-                <div class="mt-2 text-center small text-muted"><?php echo htmlspecialchars($row['ArtName']); ?></div>
-            </div>
-        </div>
+        <div class="container">
+            <div class="gallery-wrapper">
+                <h1>Gallery</h1>
 
-        <?php } ?>
+                <!-- Gallery Grid -->
+                <div class="row row-cols-1 row-cols-lg-3 row-cols-md-2 g-4 gallery-row">
+                    <?php while($row = $result->fetch_assoc()) { ?>
+                        <div class="col">
+                            <div class="card h-100">
+                                <a href="veiw_art.php?id=<?php echo urlencode($row['ArtID']); ?>" class="gallery-link">
+                                    <img 
+                                        src="images/<?php echo htmlspecialchars($row['image_name']); ?>" 
+                                        class="card-img-top"
+                                        alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
+                                </a>
+                                <div class="card-body text-center">
+                                    <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
+                                    <a href="veiw_art.php?id=<?php echo urlencode($row['ArtID']); ?>" class="btn btn-sm btn-primary">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } ?>
+                </div> <!-- .gallery-row -->
+            </div> <!-- .gallery-wrapper -->
+        </div> <!-- .container -->
+    </div> <!-- .main-content -->
 
-    </div>
-
-</div>
-    </div>
     <?php
-        // free result and close local connection
+        // Clean up
         if (isset($result) && $result instanceof mysqli_result) {
             $result->free();
         }
-        $artConn->close();
+        $conn->close();
     ?>
-    </body>
+</body>
 </html>
