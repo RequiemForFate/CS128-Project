@@ -23,6 +23,7 @@
             }
         ?>
     <div class=" py-1">
+            <?php include 'menu.php'; ?>
             <?php include 'banner.php'; ?>
     <div class="gallery-container row-cols-5">
         <?php while($row = mysqli_fetch_assoc($result)) { ?>
@@ -35,5 +36,13 @@
 
     <?php } ?>
 </div>
+<?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+} else {
+    session_destroy();
+}
+
+?>
     </body>
 </html>
