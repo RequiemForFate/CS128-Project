@@ -47,6 +47,12 @@ if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
 </head>
 
 <style>
+
+        .logo-big {
+        width: 60px;
+        height: auto;
+    }
+
     .banner {
         width: 100%;
         margin: 0;
@@ -55,36 +61,34 @@ if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
     }
 
     .banner-image {
-        display: block;
-        width: 100%;
-        height: auto;
-        min-height: 180px;
-        max-height: 280px;
-        object-fit: cover;
-        padding: 0;
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 180px;
+    max-height: 280px;
+    object-fit: cover;
+    padding: 0;
+    border-radius: 15px;
+}
+
+    .banner h2 {
+    margin-top: 0;
+    color: #000;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.6);
     }
 
-    .logo-big {
-        width: 60px;
-        height: auto;
-    }
-    .banner h2 {
-        margin-top: -60px;
-        color: #000;
-        text-shadow: 0 1px 2px rgba(255,255,255,0.6);
-    }
     .banner-text {
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 10px;
-        border-radius: 5px;
-    }
+    background-color: #ffffff;
+    padding: 15px 20px;    
+    border-radius: 15px;
+}
 </style>
 <body>
 <div class="main-content">
 <div class="banner">
     <img src="<?php echo htmlspecialchars($bannerImage); ?>" class="banner-image" alt="Banner Image">
-    <div class="container alert-info banner-text center py-2">
-        <h2><?php echo htmlspecialchars($galleryName); ?></h2>
+    <div class="container alert-info text-center py-2">
+        <h2 class="banner-text"><?php echo htmlspecialchars($galleryName); ?></h2>
 </div>
 </div>
 </div>
