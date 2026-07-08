@@ -99,6 +99,20 @@ h2 {
     background-color: #575757;
 }
 
+.sidebar .profile-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar .profile-avatar {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: inline-block;
+}
+
 
 /* 3. Style the links inside the sidebar */
 
