@@ -10,17 +10,23 @@
 
     </head>
     <body>
-        
         <?php
+            session_start();
+            $currentUser = $_SESSION['username'] ?? '';
+            if ($currentUser === '') {
+                header('Location: login.php');
+                exit();
+            }
+
             $conn = mysqli_connect("localhost", "root", "", "ArtShopDB",3306);
             if (!$conn) {
                 die("Connection failed: " . mysqli_connect_error());
             }
-            $sql = "SELECT * FROM Artdata";
-            $result = mysqli_query($conn, $sql);
-            if (!$result) {
-                die("Query failed: " . mysqli_error($conn));
-            }
+
+            $stmt = $conn->prepare("SELECT * FROM Artdata WHERE owner = ? ORDER BY ArtID DESC");
+            $stmt->bind_param("s", $currentUser);
+            $stmt->execute();
+            $result = $stmt->get_result();
         ?>
     <div class=" py-1">
             <?php include 'menu.php'; ?>
@@ -28,21 +34,17 @@
     <div class="gallery-container row-cols-5">
         <?php while($row = mysqli_fetch_assoc($result)) { ?>
     <div class="photo">
-        <img src="images/<?php echo $row['image_name']; ?>" alt="Image">
-        <h3><?php echo $row['ArtName']; ?></h3>
-        <p><strong>Image ID:</strong> <?php echo $row['ArtID']; ?></p>
-        <p><?php echo $row['ArtDes']; ?></p>
+        <img src="images/<?php echo htmlspecialchars($row['image_name']); ?>" alt="Image">
+        <h3><?php echo htmlspecialchars($row['ArtName']); ?></h3>
+        <p><strong>Image ID:</strong> <?php echo htmlspecialchars($row['ArtID']); ?></p>
+        <p><?php echo htmlspecialchars($row['ArtDes']); ?></p>
     </div>
 
     <?php } ?>
 </div>
 <?php
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-} else {
-    session_destroy();
-}
-
+    $stmt->close();
+    $conn->close();
 ?>
     </body>
 </html>

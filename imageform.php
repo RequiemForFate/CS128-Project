@@ -7,6 +7,12 @@
 
     $dbError = '';
     $conn = null;
+    $currentUser = $_SESSION['username'] ?? '';
+
+    if (empty($currentUser)) {
+        header('Location: login.php');
+        exit();
+    }
 
     if (!extension_loaded('mysqli')) {
         $dbError = 'Database support is unavailable in this PHP environment. Enable the mysqli extension to use the gallery and upload features.';
@@ -16,6 +22,10 @@
             $dbError = 'Unable to connect to the database right now.';
             $conn = null;
         }
+    }
+
+    if ($conn !== null) {
+        $conn->query("ALTER TABLE Artdata ADD COLUMN IF NOT EXISTS owner VARCHAR(255) NOT NULL DEFAULT ''");
     }
 
     if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
@@ -32,8 +42,8 @@
                 }
             }
 
-            $stmt = $conn->prepare("INSERT INTO Artdata(ArtID, ArtName, image_name, ArtDes) VALUES(?, ?, ?, ?)");
-            $stmt->bind_param("ssss", $ArtID, $ArtName, $image, $ArtDes);
+            $stmt = $conn->prepare("INSERT INTO Artdata(ArtID, ArtName, image_name, ArtDes, owner) VALUES(?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $ArtID, $ArtName, $image, $ArtDes, $currentUser);
             if($stmt->execute()){
                 echo "Insert success!";
             } else {
@@ -46,8 +56,8 @@
             $image = "";
             $ArtDes = $conn->real_escape_string($_POST['ArtDes']);
 
-            $stmt = $conn->prepare("SELECT image_name FROM Artdata WHERE ArtID = ?");
-            $stmt->bind_param("s", $ArtID);
+            $stmt = $conn->prepare("SELECT image_name FROM Artdata WHERE ArtID = ? AND owner = ?");
+            $stmt->bind_param("ss", $ArtID, $currentUser);
             $stmt->execute();
             $checkResult = $stmt->get_result();
             if($checkResult && $checkResult->num_rows > 0){
@@ -62,8 +72,8 @@
                 }
             }
 
-            $updateStmt = $conn->prepare("UPDATE Artdata SET ArtName=?, image_name=?, ArtDes=? WHERE ArtID=?");
-            $updateStmt->bind_param("ssss", $ArtName, $image, $ArtDes, $ArtID);
+            $updateStmt = $conn->prepare("UPDATE Artdata SET ArtName=?, image_name=?, ArtDes=? WHERE ArtID=? AND owner=?");
+            $updateStmt->bind_param("sssss", $ArtName, $image, $ArtDes, $ArtID, $currentUser);
             if($updateStmt->execute()){
                 echo "Update success";
             } else {
@@ -72,8 +82,8 @@
         }
         else if(isset($_POST['Delete'])){
             $ArtID = $conn->real_escape_string($_POST['ArtID']);
-            $deleteStmt = $conn->prepare("DELETE FROM Artdata WHERE ArtID=?");
-            $deleteStmt->bind_param("s", $ArtID);
+            $deleteStmt = $conn->prepare("DELETE FROM Artdata WHERE ArtID=? AND owner=?");
+            $deleteStmt->bind_param("ss", $ArtID, $currentUser);
             if($deleteStmt->execute()){
                 echo "Delete success";
             } else {
@@ -127,8 +137,11 @@
                     <div class="row row-cols-1 row-cols-lg-3 row-cols-md-2 g-4 gallery-row">
                         <?php
                             if ($conn !== null) {
-                                $sql = "SELECT * FROM Artdata";
-                                $result = $conn->query($sql);
+                                $sql = "SELECT * FROM Artdata WHERE owner = ? ORDER BY ArtID DESC";
+                                $stmt = $conn->prepare($sql);
+                                $stmt->bind_param("s", $currentUser);
+                                $stmt->execute();
+                                $result = $stmt->get_result();
                                 if($result && $result->num_rows > 0){
                                     while($row = $result->fetch_assoc()){
                         ?>
