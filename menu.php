@@ -26,7 +26,7 @@ if (!empty($username) && $username !== 'Login' && extension_loaded('mysqli')) {
 ?>
 
 <!-- The Side Menu -->
-<button id="sidebarToggle" class="sidebar-toggle" aria-expanded="true" aria-controls="sidebar">☰ Menu</button>
+<button id="sidebarToggle" class="si debar-toggle" aria-expanded="true" aria-controls="sidebar">☰ Menu</button>
 <div class="sidebar" id="sidebar">
     <a href="profile.php" class="profile-link">
         <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" alt="Profile" class="profile-avatar">
