@@ -5,35 +5,35 @@ body {
 
 h1 {
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center
+    text-align: center;
 }
 
 h3 {
     color: #04011b;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center
+    text-align: center;
 }
 
 h2 {
     color: #fffae6;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center
+    text-align: center;
 }
 
 .menu {
     background: #4563ea;
     padding: 10px;
-    border: 1px solid #21010b
+    border: 1px solid #21010b;
 }
 
 .menu a {
     margin-right: 15px;
     text-decoration: none;
-    color: #000
+    color: #000;
 }
 
 .menu-right {
-    float: right
+    float: right;
 }
 
 * {
@@ -182,7 +182,7 @@ button {
 }
 
 .center {
-    text-align: center
+    text-align: center;
 }
 
 .gallery {
@@ -205,14 +205,22 @@ button {
 .gallery-img {
     width: 100%;
     height: 300px;
-    object-fit: contain;
+    object-fit: cover;
     transition: all 0.3s ease;
     cursor: pointer;
+    border-radius: 8px;
+    display: block;
 }
 
 .gallery-img:hover {
     transform: scale(1.05);
     filter: brightness(70%);
+}
+
+.gallery a {
+    text-decoration: none;
+    display: block;
+    height: 100%;
 }
 
 .photo {
@@ -233,4 +241,27 @@ button {
 
 .photo p {
     margin-top: 10px;
+}
+
+.big-image {
+    width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.close-btn:hover {
+    color: #666;
 }
