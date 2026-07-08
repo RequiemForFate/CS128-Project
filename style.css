@@ -49,19 +49,12 @@ h2 {
 
 .sidebar {
     height: 100vh;
-    /* Full-screen height */
     width: 250px;
-    /* Set width of sidebar */
     position: fixed;
-    /* Stay in place on scroll */
     z-index: 1000;
-    /* Stay on top of other content */
     top: 0;
-    /* Stay at the top */
     left: 0;
-    /* Position on the left side */
-    background-color: #111;
-    /* Dark background color */
+    background-color: #2a3cff;
     padding-top: 60px;
     transform: translateX(0);
     transition: transform 0.25s ease, opacity 0.25s ease;
@@ -78,7 +71,7 @@ h2 {
     left: 15px;
     z-index: 1100;
     border: none;
-    background: #111;
+    background: #1300bf;
     color: #fff;
     padding: 10px 15px;
     font-size: 16px;
@@ -98,7 +91,7 @@ h2 {
 
 .sidebar a:hover {
     color: #f1f1f1;
-    background-color: #575757;
+    background-color: #ca6ced;
 }
 
 .profile-link {
@@ -116,13 +109,13 @@ h2 {
 }
 
 
-/* 3. Style the links inside the sidebar */
+/* Style the links inside the sidebar */
 
 .sidebar a {
     padding: 10px 15px;
     text-decoration: none;
     font-size: 18px;
-    color: #818181;
+    color: #7fa1ff;
     display: block;
     /* Make links stack vertically */
 }
@@ -132,7 +125,7 @@ h2 {
 
 .sidebar a:hover {
     color: #f1f1f1;
-    background-color: #575757;
+    background-color: #2063ff;
 }
 
 

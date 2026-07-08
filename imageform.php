@@ -5,12 +5,20 @@
         mkdir($uploadDir, 0777, true);
     }
 
-    $conn = new mysqli("localhost","root","",
-                "ArtShopDB",3306);
-    if($conn->connect_error){
-        die("can't connect to ArtShopDB database");
+    $dbError = '';
+    $conn = null;
+
+    if (!extension_loaded('mysqli')) {
+        $dbError = 'Database support is unavailable in this PHP environment. Enable the mysqli extension to use the gallery and upload features.';
+    } else {
+        $conn = new mysqli("localhost","root","", "ArtShopDB",3306);
+        if($conn->connect_error){
+            $dbError = 'Unable to connect to the database right now.';
+            $conn = null;
+        }
     }
-    if($_SERVER['REQUEST_METHOD'] == "POST"){
+
+    if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
         if(isset($_POST['Insert'])){
             $ArtID = $conn->real_escape_string($_POST['ArtID']);
             $ArtName = $conn->real_escape_string($_POST['ArtName']);
@@ -90,6 +98,9 @@
         <div class="form-container">
             <div class="card">
             <h3>Portfolio Application</h3>
+            <?php if ($dbError !== ''): ?>
+                <div class="alert alert-warning"><?php echo htmlspecialchars($dbError); ?></div>
+            <?php endif; ?>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
             
                 <label>Art ID</label>
@@ -114,10 +125,11 @@
 
             <div class="row row-cols-1 row-cols-lg-3 row-cols-md-2 g-4 gallery-row">
                 <?php
-                    $sql = "SELECT * FROM Artdata";
-                    $result = mysqli_query($conn, $sql);
-                    if($result && $result->num_rows > 0){
-                        while($row = $result->fetch_assoc()){
+                    if ($conn !== null) {
+                        $sql = "SELECT * FROM Artdata";
+                        $result = $conn->query($sql);
+                        if($result && $result->num_rows > 0){
+                            while($row = $result->fetch_assoc()){
                 ?>
                         <div class="col">
                             <div class="card h-100">
@@ -135,6 +147,7 @@
                             </div>
                         </div>
                     <?php }
+                        }
                     } ?>
             </div>
             </div>

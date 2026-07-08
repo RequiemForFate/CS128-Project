@@ -15,7 +15,7 @@
 
         if ($result->num_rows > 0) {
             $_SESSION['username'] = $username;
-            header("Location: imageform.php");
+            header("Location: profile.php");
             exit();
         } else {
             $loginError = "Invalid username or password.";
