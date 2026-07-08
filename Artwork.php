@@ -24,16 +24,23 @@
         ?>
     <div class=" py-1">
             <?php include 'banner.php'; ?>
-    <div class="gallery-container row-cols-5">
+    <div class="container mt-4">
+    <div class="row g-4">
         <?php while($row = mysqli_fetch_assoc($result)) { ?>
-    <div class="photo">
-        <img src="images/<?php echo $row['image_name']; ?>" alt="Image">
-        <h3><?php echo $row['ArtName']; ?></h3>
-        <p><strong>Image ID:</strong> <?php echo $row['ArtID']; ?></p>
-        <p><?php echo $row['ArtDes']; ?></p>
-    </div>
+        <div class="col-md-4">
+            <div class="gallery h-100">
+                <a href="veiw_art.php?id=<?php echo $row['ArtID']; ?>">
+                    <img 
+                    src="images/<?php echo $row['image_name']; ?>" 
+                    class="card-img-top gallery-img"
+                    alt="Image">
+                </a>
+            </div>
+        </div>
 
-    <?php } ?>
-</div>
+        <?php } ?>
+
+    </div>
+    </div>
     </body>
 </html>
