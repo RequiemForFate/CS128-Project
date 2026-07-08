@@ -7,7 +7,7 @@ $username = !empty($_SESSION['username']) ? $_SESSION['username'] : 'Login';
 $profileImageSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fi...';
 
 if (!empty($username) && $username !== 'Login' && extension_loaded('mysqli')) {
-    // Use a local connection variable to avoid closing the global $conn used by pages that include this file
+    // Use a local connection variable to avoid closing the global $conn
     $menuConn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
     if (!$menuConn->connect_error) {
         $stmt = $menuConn->prepare("SELECT profile_picture FROM users WHERE name = ?");

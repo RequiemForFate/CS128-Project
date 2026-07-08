@@ -1,6 +1,5 @@
 <?php
-// banner.php fragment — include into pages' body where you want the banner shown.
-// Prefer images/banner.jpg if it exists; otherwise fall back to banner.jpg in the project root.
+
 $bannerImage = 'banner.jpg';
 if (file_exists(__DIR__ . '/images/banner.jpg')) {
     $bannerImage = 'images/banner.jpg';
@@ -31,8 +30,6 @@ if (file_exists(__DIR__ . '/images/banner.jpg')) {
         width: 60px;
         height: auto;
     }
-
-    /* optional spacing for the heading over the banner */
     .banner h2 {
         margin-top: -60px;
         color: #000;
