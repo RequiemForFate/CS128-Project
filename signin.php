@@ -61,15 +61,15 @@
 
 <body>
     <!-- Header Section -->
-    <div class="container py-1"> <!-- container start -->
+    <div class="container py-1">
         <?php include 'banner.php'; ?>
         <?php include 'menu.php'; ?>
-    </div> <!-- end container -->
+    </div>
 
     <!-- Main Content -->
-    <div class="main-content"> <!-- main-content start -->
-        <div class="auth-page"> <!-- auth-page start -->
-            <div class="auth-card"> <!-- auth-card start -->
+    <div class="main-content">
+        <div class="auth-page">
+            <div class="auth-card">
                 <h3>Sign Up</h3>
 
                 <!-- Error Message -->
@@ -81,7 +81,7 @@
                 <?php endif; ?>
 
                 <!-- Sign Up Form -->
-                <form class="auth-form" method="post"> <!-- auth-form start -->
+                <form class="auth-form" method="post">
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" 
@@ -113,15 +113,15 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">Sign Up</button>
-                </form> <!-- end auth-form -->
+                </form>
 
                 <!-- Login Link -->
                 <p class="auth-link">
                     Already have an account? <a href="login.php">Login here</a>
                 </p>
-            </div> <!-- end auth-card -->
-        </div> <!-- end auth-page -->
-    </div> <!-- end main-content -->
+            </div>
+        </div>
+    </div> <!-- .main-content -->
 </body>
 </html>
 

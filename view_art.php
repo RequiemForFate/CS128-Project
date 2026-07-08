@@ -1,18 +1,22 @@
 <?php
+session_start();
 function resolveImagePath($imageName) {
     if (empty($imageName)) {
         return '';
     }
+
     $candidatePaths = [
         'images/' . $imageName,
         $imageName,
         'images/' . basename($imageName),
     ];
+
     foreach ($candidatePaths as $path) {
         if ($path !== '' && file_exists($path)) {
             return $path;
         }
     }
+
     return $candidatePaths[0];
 }
 
@@ -21,23 +25,18 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-$id = $_GET['id'] ?? ''; // treat as string
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-if ($id === '') {
+if ($id <= 0) {
     $errorMessage = 'Invalid artwork ID.';
     $row = null;
 } else {
     $sql = "SELECT * FROM Artdata WHERE ArtID = ?";
-    $stmt = $conn->prepare($sql);
-    if ($stmt) {
-        $stmt->bind_param("s", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-    } else {
-        $errorMessage = 'Database error: ' . $conn->error;
-        $row = null;
-    }
+    $veiwstmt = $conn->prepare($sql);
+    $veiwstmt->bind_param("i", $id);
+    $veiwstmt->execute();
+    $result = $veiwstmt->get_result();
+    $row = $result->fetch_assoc();
 }
 
 if (!$row) {
@@ -48,28 +47,23 @@ if (!$row) {
 } else {
     $imagePath = resolveImagePath($row['image_name'] ?? '');
 
-    // Get previous and next using numeric ordering of ArtID (cast to unsigned)
+    // Get previous and next artwork
     $currentID = $row['ArtID'];
 
-    // Previous: ArtID < current, order by numeric value desc
-    $prevStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE CAST(ArtID AS UNSIGNED) < CAST(? AS UNSIGNED) ORDER BY CAST(ArtID AS UNSIGNED) DESC LIMIT 1");
-    if ($prevStmt) {
-        $prevStmt->bind_param("s", $currentID);
-        $prevStmt->execute();
-        $prevResult = $prevStmt->get_result();
-        $prev = $prevResult->fetch_assoc();
-    }
+    $prevStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE ArtID < ? ORDER BY ArtID DESC LIMIT 1");
+    $prevStmt->bind_param("i", $currentID);
+    $prevStmt->execute();
+    $prevResult = $prevStmt->get_result();
+    $prev = $prevResult->fetch_assoc();
 
-    // Next: ArtID > current, order by numeric value asc
-    $nextStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE CAST(ArtID AS UNSIGNED) > CAST(? AS UNSIGNED) ORDER BY CAST(ArtID AS UNSIGNED) ASC LIMIT 1");
-    if ($nextStmt) {
-        $nextStmt->bind_param("s", $currentID);
-        $nextStmt->execute();
-        $nextResult = $nextStmt->get_result();
-        $next = $nextResult->fetch_assoc();
-    }
+    $nextStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE ArtID > ? ORDER BY ArtID ASC LIMIT 1");
+    $nextStmt->bind_param("i", $currentID);
+    $nextStmt->execute();
+    $nextResult = $nextStmt->get_result();
+    $next = $nextResult->fetch_assoc();
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,66 +77,69 @@ if (!$row) {
 
 <body>
     <!-- Header Section -->
-    <div class="container py-1"> <!-- container start -->
-        <?php include 'banner.php'; ?>
-        <?php include 'menu.php'; ?>
-    </div> <!-- end container -->
+    <div class="container py-1">
+        <?php
+        $veiwstmt = $conn->prepare($sql);
+        $veiwstmt->bind_param("i", $id);
+        $veiwstmt->execute();
+        $result = $veiwstmt->get_result();
+        $row = $result->fetch_assoc();
+        ?>
+    </div>
 
     <!-- Main Content -->
-    <div class="main-content"> <!-- main-content start -->
-        <div class="container mt-5 position-relative"> <!-- container start -->
+    <div class="main-content">
+        <div class="container mt-5 position-relative">
             <!-- Close Button -->
             <a href="Artwork.php" class="close-btn">&times;</a>
 
             <!-- Artwork Display -->
-            <?php if (!$row): ?>
-                <div class="alert alert-warning">
-                    <?php echo htmlspecialchars($errorMessage); ?>
+    <?php if (!$row): ?>
+        <div class="alert alert-warning">
+            <?php echo htmlspecialchars($errorMessage); ?>
+        </div>
+    <?php else: ?>
+        <div class="row align-items-center g-4">
+            <!-- Image Section -->
+            <div class="col-md-7">
+                <img
+                    src="<?php echo htmlspecialchars($imagePath); ?>"
+                    class="big-image"
+                    alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
+            </div>
+
+            <!-- Information Section -->
+            <div class="col-md-5">
+                <h1><?php echo htmlspecialchars($row['ArtName']); ?></h1>
+                
+                <p class="text-muted">
+                    <strong>ID:</strong> <?php echo htmlspecialchars($row['ArtID']); ?>
+                </p>
+                
+                <p>
+                    <?php echo htmlspecialchars($row['ArtDes']); ?>
+                </p>
+                    <!-- Navigation Buttons -->
+                    <div class="d-flex justify-content-between mt-5 gap-2">
+                        <?php if ($prev) { ?>
+                            <a href="view_art.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
+                                ← Previous
+                            </a>
+                        <?php } else { ?>
+                            <div></div>
+                        <?php } ?>
+
+                        <?php if ($next) { ?>
+                            <a href="view_art.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
+                                Next →
+                            </a>
+                        <?php } ?>
+                    </div>
                 </div>
-            <?php else: ?>
-                <div class="row align-items-center g-4"> <!-- row start -->
-                    <!-- Image Section -->
-                    <div class="col-md-7"> <!-- col start -->
-                        <img
-                            src="<?php echo htmlspecialchars($imagePath); ?>"
-                            class="big-image"
-                            alt="<?php echo htmlspecialchars($row['ArtName']); ?>"
-                            onerror="this.src='images/placeholder.png';">
-                    </div> <!-- end col -->
-
-                    <!-- Information Section -->
-                    <div class="col-md-5"> <!-- col start -->
-                        <h1><?php echo htmlspecialchars($row['ArtName']); ?></h1>
-                        
-                        <p class="text-muted">
-                            <strong>Artwork ID:</strong><br>
-                            <?php echo htmlspecialchars($row['ArtID']); ?>
-                        </p>
-                        
-                        <p>
-                            <?php echo htmlspecialchars($row['ArtDes']); ?>
-                        </p>
-                        <!-- Navigation Buttons -->
-                        <div class="d-flex justify-content-between mt-5 gap-2"> <!-- nav div start -->
-                            <?php if ($prev) { ?>
-                                <a href="view_art.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
-                                    ← Previous
-                                </a>
-                            <?php } else { ?>
-                                <div></div>
-                            <?php } ?>
-
-                            <?php if ($next) { ?>
-                                <a href="view_art.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
-                                    Next →
-                                </a>
-                            <?php } ?>
-                        </div> <!-- end nav div -->
-                    </div> <!-- end col -->
-                </div> <!-- end row -->
-            <?php endif; ?>
-        </div> <!-- end container -->
-    </div> <!-- end main-content -->
+            </div> <!-- .row -->
+        <?php endif; ?>
+        </div> <!-- .container -->
+    </div> <!-- .main-content -->
 </body>
 </html>
 

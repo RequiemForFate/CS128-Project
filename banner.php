@@ -4,18 +4,15 @@ $bannerImage = 'images/banner.jpg'; // Default banner image
 if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
     $bannerconn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
     if (!$bannerconn->connect_error) {
-        $stmt = $bannerconn->prepare("SELECT banner_image FROM users WHERE name = ?");
-        if ($stmt) {
-            $stmt->bind_param("s", $_SESSION['username']);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                if (!empty($row['banner_image'])) {
-                    $bannerImage = 'images/' . htmlspecialchars($row['banner_image']);
-                }
+        $bannerstmt = $bannerconn->prepare("SELECT banner_image FROM users WHERE name = ?");
+        $bannerstmt->bind_param("s", $_SESSION['username']);
+        $bannerstmt->execute();
+        $bannerresult = $bannerstmt->get_result();
+        if ($bannerresult->num_rows > 0) {
+            $bannerrow = $bannerresult->fetch_assoc();
+            if (!empty($bannerrow['banner_image'])) {
+                $bannerImage = 'images/' . htmlspecialchars($bannerrow['banner_image']);
             }
-            $stmt->close();
         }
         $bannerconn->close();
     }
@@ -25,18 +22,15 @@ $galleryName = 'gallery'; // Default gallery name
 if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
     $galleryconn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
     if (!$galleryconn->connect_error) {
-        $stmt = $galleryconn->prepare("SELECT gallery_name FROM users WHERE name = ?");
-        if ($stmt) {
-            $stmt->bind_param("s", $_SESSION['username']);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                if (!empty($row['gallery_name'])) {
-                    $galleryName = htmlspecialchars($row['gallery_name']);
-                }
+        $gallerystmt = $galleryconn->prepare("SELECT gallery_name FROM users WHERE name = ?");
+        $gallerystmt->bind_param("s", $_SESSION['username']);
+        $gallerystmt->execute();
+        $galleryresult = $gallerystmt->get_result();
+        if ($galleryresult->num_rows > 0) {
+            $row = $galleryresult->fetch_assoc();
+            if (!empty($row['gallery_name'])) {
+                $galleryName = htmlspecialchars($row['gallery_name']);
             }
-            $stmt->close();
         }
         $galleryconn->close();
     }
@@ -79,15 +73,20 @@ if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
         color: #000;
         text-shadow: 0 1px 2px rgba(255,255,255,0.6);
     }
+    .banner-text {
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 5px;
+    }
 </style>
 <body>
-<div class="main-content"> <!-- main-content start -->
-<div class="banner"> <!-- banner start -->
-    <img src="<?php echo htmlspecialchars($bannerImage); ?>" class="banner-image" alt="Banner Image" onerror="this.src='images/placeholder.png';">
-    <div class="container alert-info text-center py-2"> <!-- container start -->
+<div class="main-content">
+<div class="banner">
+    <img src="<?php echo htmlspecialchars($bannerImage); ?>" class="banner-image" alt="Banner Image">
+    <div class="container alert-info banner-text center py-2">
         <h2><?php echo htmlspecialchars($galleryName); ?></h2>
-    </div> <!-- end container -->
-</div> <!-- end banner -->
-</div> <!-- end main-content -->
+</div>
+</div>
+</div>
 </body>
 </html>

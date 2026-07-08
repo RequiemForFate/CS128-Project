@@ -12,6 +12,7 @@ if ($currentUsername === '') {
     exit();
 }
 
+
 function saveUploadedImage($file, $prefix) {
     if (empty($file['name']) || !is_uploaded_file($file['tmp_name'])) {
         return '';
@@ -41,20 +42,17 @@ $userData = [
 ];
 
 $stmt = $conn->prepare("SELECT name, profile_picture, gallery_name, banner_image FROM users WHERE name = ?");
-if ($stmt) {
-    $stmt->bind_param("s", $currentUsername);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        $userData = [
-            'name' => $row['name'] ?? $currentUsername,
-            'profile_picture' => $row['profile_picture'] ?? '',
-            'gallery_name' => $row['gallery_name'] ?? '',
-            'banner_image' => $row['banner_image'] ?? ''
-        ];
-    }
-    $stmt->close();
+$stmt->bind_param("s", $currentUsername);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $userData = [
+        'name' => $row['name'] ?? $currentUsername,
+        'profile_picture' => $row['profile_picture'] ?? '',
+        'gallery_name' => $row['gallery_name'] ?? '',
+        'banner_image' => $row['banner_image'] ?? ''
+    ];
 }
 
 // Handle form submission
@@ -68,50 +66,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Check if username is already taken
         $checkStmt = $conn->prepare("SELECT name FROM users WHERE name = ? AND name != ?");
-        if ($checkStmt) {
-            $checkStmt->bind_param("ss", $newUsername, $currentUsername);
-            $checkStmt->execute();
-            $checkResult = $checkStmt->get_result();
+        $checkStmt->bind_param("ss", $newUsername, $currentUsername);
+        $checkStmt->execute();
+        $checkResult = $checkStmt->get_result();
 
-            if ($checkResult->num_rows > 0) {
-                $message = 'That username is already taken.';
-            } else {
-                // Handle file uploads
-                $profilePicture = $userData['profile_picture'];
-                $uploadedProfilePicture = saveUploadedImage($_FILES['profile_picture'] ?? [], 'profile');
-                if ($uploadedProfilePicture !== '') {
-                    $profilePicture = $uploadedProfilePicture;
-                }
-
-                $bannerImage = $userData['banner_image'];
-                $uploadedBannerImage = saveUploadedImage($_FILES['banner_image'] ?? [], 'banner');
-                if ($uploadedBannerImage !== '') {
-                    $bannerImage = $uploadedBannerImage;
-                }
-
-                // Update database
-                $updateStmt = $conn->prepare("UPDATE users SET name = ?, profile_picture = ?, gallery_name = ?, banner_image = ? WHERE name = ?");
-                if ($updateStmt) {
-                    $updateStmt->bind_param("sssss", $newUsername, $profilePicture, $galleryName, $bannerImage, $currentUsername);
-                    if ($updateStmt->execute()) {
-                        $_SESSION['username'] = $newUsername;
-                        $currentUsername = $newUsername;
-                        $userData['name'] = $newUsername;
-                        $userData['profile_picture'] = $profilePicture;
-                        $userData['gallery_name'] = $galleryName;
-                        $userData['banner_image'] = $bannerImage;
-                        $message = 'Profile updated successfully.';
-                    } else {
-                        $message = 'Unable to update your profile.';
-                    }
-                    $updateStmt->close();
-                } else {
-                    $message = 'Database error: ' . $conn->error;
-                }
-            }
-            $checkStmt->close();
+        if ($checkResult->num_rows > 0) {
+            $message = 'That username is already taken.';
         } else {
-            $message = 'Database error: ' . $conn->error;
+            // Handle file uploads
+            $profilePicture = $userData['profile_picture'];
+            $uploadedProfilePicture = saveUploadedImage($_FILES['profile_picture'] ?? [], 'profile');
+            if ($uploadedProfilePicture !== '') {
+                $profilePicture = $uploadedProfilePicture;
+            }
+
+            $bannerImage = $userData['banner_image'];
+            $uploadedBannerImage = saveUploadedImage($_FILES['banner_image'] ?? [], 'banner');
+            if ($uploadedBannerImage !== '') {
+                $bannerImage = $uploadedBannerImage;
+            }
+
+            // Update database
+            $updateStmt = $conn->prepare("UPDATE users SET name = ?, profile_picture = ?, gallery_name = ?, banner_image = ? WHERE name = ?");
+            $updateStmt->bind_param("sssss", $newUsername, $profilePicture, $galleryName, $bannerImage, $currentUsername);
+            if ($updateStmt->execute()) {
+                $_SESSION['username'] = $newUsername;
+                $currentUsername = $newUsername;
+                $userData['name'] = $newUsername;
+                $userData['profile_picture'] = $profilePicture;
+                $userData['gallery_name'] = $galleryName;
+                $userData['banner_image'] = $bannerImage;
+                $message = 'Profile updated successfully.';
+            } else {
+                $message = 'Unable to update your profile.';
+            }
         }
     }
 }
@@ -119,11 +107,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Prepare image sources
 $profileImageSrc = !empty($userData['profile_picture'])
     ? 'images/' . htmlspecialchars($userData['profile_picture'])
-    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cpath d="M 8 56 A 24 24 0 0 1 56 56" fill="%23ffffff"/%3E%3C/svg%3E';
+    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cellipse cx="32" cy="48" rx="20" ry="16" fill="%23ffffff"/%3E%3C/svg%3E';
 
 $bannerImageSrc = !empty($userData['banner_image'])
     ? 'images/' . htmlspecialchars($userData['banner_image'])
-    : 'images/banner.jpg';
+    : 'banner.jpg';
 
 $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'My Gallery';
 ?>
@@ -141,14 +129,14 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
 
 <body>
     <!-- Header Section -->
-    <div class="container py-1"> <!-- container start -->
+    <div class="container py-1">
         <?php include 'banner.php'; ?>
         <?php include 'menu.php'; ?>
-    </div> <!-- end container -->
+    </div>
 
     <!-- Main Content -->
-    <div class="main-content"> <!-- main-content start -->
-        <div class="container py-4"> <!-- container start -->
+    <div class="main-content">
+        <div class="container py-4">
             <!-- Status Message -->
             <?php if ($message !== ''): ?>
                 <div class="alert alert-info alert-dismissible fade show" role="alert">
@@ -158,29 +146,29 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
             <?php endif; ?>
 
             <!-- Profile Layout -->
-            <div class="row g-4"> <!-- row start -->
+            <div class="row g-4">
                 <!-- Profile Card -->
-                <div class="col-lg-4"> <!-- col start -->
-                    <div class="card shadow-sm"> <!-- card start -->
+                <div class="col-lg-4">
+                    <div class="card shadow-sm">
                         <img src="<?php echo htmlspecialchars($bannerImageSrc); ?>" 
                             class="card-img-top" 
                             alt="Profile banner" 
                             style="height: 180px; object-fit: cover;">
-                        <div class="card-body text-center"> <!-- card-body start -->
+                        <div class="card-body text-center">
                             <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" 
                                 alt="Profile picture" 
                                 class="rounded-circle border border-3 border-light shadow" 
                                 style="width: 110px; height: 110px; object-fit: cover; margin-top: -65px;">
                             <h3 class="mt-3 mb-1"><?php echo htmlspecialchars($userData['name']); ?></h3>
                             <p class="text-muted mb-0"><?php echo htmlspecialchars($galleryName); ?></p>
-                        </div> <!-- end card-body -->
-                    </div> <!-- end card -->
-                </div> <!-- end col -->
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Edit Profile Form -->
-                <div class="col-lg-8"> <!-- col start -->
-                    <div class="card shadow-sm"> <!-- card start -->
-                        <div class="card-body"> <!-- card-body start -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
                             <h3 class="card-title mb-4">Edit Profile</h3>
                             <form method="post" enctype="multipart/form-data">
                                 <!-- Username Field -->
@@ -192,7 +180,7 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                                 <!-- Profile Picture Field -->
                                 <div class="mb-3">
                                     <label for="profile_picture" class="form-label">Profile Picture</label>
-                                    <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
+                                    <input type="file" id="profile_picture"name="profile_picture" class="form-control" accept="image/*">
                                 </div>
 
                                 <!-- Gallery Name Field -->
@@ -204,18 +192,18 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                                 <!-- Banner Image Field -->
                                 <div class="mb-4">
                                     <label for="banner_image" class="form-label">Banner Image</label>
-                                    <input type="file" id="banner_image" name="banner_image" class="form-control" accept="image/*">
+                                    <input type="file" id="banner_image"name="banner_image" class="form-control" accept="image/*">
                                 </div>
 
                                 <!-- Submit Button -->
                                 <button type="submit" class="btn btn-primary btn-lg w-100">Save Profile</button>
                             </form>
-                        </div> <!-- end card-body -->
-                    </div> <!-- end card -->
-                </div> <!-- end col -->
-            </div> <!-- end row -->
-        </div> <!-- end container -->
-    </div> <!-- end main-content -->
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- .row -->
+        </div> <!-- .container -->
+    </div> <!-- .main-content -->
 </body>
 </html>
 
