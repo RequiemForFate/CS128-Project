@@ -105,13 +105,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Prepare image sources
-$profileImageSrc = !empty($userData['profile_picture'])
-    ? 'images/' . htmlspecialchars($userData['profile_picture'])
-    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cellipse cx="32" cy="48" rx="20" ry="16" fill="%23ffffff"/%3E%3C/svg%3E';
+// Custom image  
+if (!empty($userData['profile_picture']) && file_exists(__DIR__ . '/images/' . $userData['profile_picture'])) {
+    $profileImageSrc = 'images/' . htmlspecialchars($userData['profile_picture']);
+}
+else {
+    $profileImageSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cellipse cx="32" cy="48" rx="20" ry="16" fill="%23ffffff"/%3E%3C/svg%3E';
+}
 
 $bannerImageSrc = !empty($userData['banner_image'])
     ? 'images/' . htmlspecialchars($userData['banner_image'])
-    : 'banner.jpg';
+    : 'images/banner.jpg';
 
 $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'My Gallery';
 ?>
@@ -141,7 +145,6 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
             <?php if ($message !== ''): ?>
                 <div class="alert alert-info alert-dismissible fade show" role="alert">
                     <?php echo htmlspecialchars($message); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <?php endif; ?>
 

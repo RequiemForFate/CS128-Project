@@ -14,6 +14,13 @@ if (empty($currentUser)) {
     exit();
 }
 
+// Initialize alert messages from session (flash messages)
+$alertMessages = [];
+if (isset($_SESSION['flash_messages'])) {
+    $alertMessages = $_SESSION['flash_messages'];
+    unset($_SESSION['flash_messages']);   // clear so they don't show again
+}
+
 if (!extension_loaded('mysqli')) {
     $dbError = 'Database support is unavailable in this PHP environment. Enable the mysqli extension to use the gallery and upload features.';
 } else {
@@ -28,7 +35,7 @@ if ($conn !== null) {
     $conn->query("ALTER TABLE Artdata ADD COLUMN IF NOT EXISTS owner VARCHAR(255) NOT NULL DEFAULT ''");
 }
 
-$alertMessages = [];
+$shouldRedirect = false;   // flag for PRG
 
 if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
     if(isset($_POST['Insert'])){
@@ -93,12 +100,16 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
         }
     }
 
-    // --- Clear input fields after any submit ---
-    $_POST['ArtID'] = '';
-    $_POST['ArtName'] = '';
-    $_POST['ArtDes'] = '';
+    // Store messages in session for PRG
+    $_SESSION['flash_messages'] = $alertMessages;
+    $shouldRedirect = true;
 }
 
+// Perform redirect BEFORE any HTML output
+if ($shouldRedirect) {
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -112,7 +123,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
     <?php include 'menu.php'; ?>
     <div class="main-content">
         <div class="container">
-            <!-- Alert messages -->
+            <!-- Alert messages (now coming from session after redirect) -->
             <?php if (!empty($alertMessages)): ?>
                 <?php foreach ($alertMessages as $msg): ?>
                     <div class="alert alert-info text-center"><?php echo htmlspecialchars($msg); ?></div>
@@ -128,13 +139,13 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
                     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
 
                         <label>Art ID</label>
-                        <input type="text" name="ArtID" value="<?php echo isset($_POST['ArtID']) ? htmlspecialchars($_POST['ArtID']) : ''; ?>" required class="form-control"><br>
+                        <input type="text" name="ArtID" value="" required class="form-control"><br>
 
                         <label>Art Name</label>
-                        <input type="text" name="ArtName" value="<?php echo isset($_POST['ArtName']) ? htmlspecialchars($_POST['ArtName']) : ''; ?>" class="form-control"><br>
+                        <input type="text" name="ArtName" value="" class="form-control"><br>
 
                         <label>Art Description</label>
-                        <input type="text" name="ArtDes" value="<?php echo isset($_POST['ArtDes']) ? htmlspecialchars($_POST['ArtDes']) : ''; ?>" class="form-control"><br>
+                        <input type="text" name="ArtDes" value="" class="form-control"><br>
 
                         <input type="file" name="filUpload" id="image" accept="image/*"><br><br>
                         <div class="btn-group d-flex justify-content-center">

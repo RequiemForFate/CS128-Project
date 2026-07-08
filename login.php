@@ -43,13 +43,8 @@
 
 <body>
 
-<div class="container py-1"> <!-- container start -->
-        <?php include 'banner.php'; ?>
-        <?php include 'menu.php'; ?>
-    </div> <!-- end container -->
-
     <!-- Main Content -->
-    <div class="main-content"> <!-- main-content start -->
+    <div class="main-content-auth"> <!-- main-content start -->
         <div class="auth-page"> <!-- auth-page start -->
             <div class="auth-card"> <!-- auth-card start -->
                 <h3>Login</h3>

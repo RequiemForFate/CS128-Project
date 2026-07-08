@@ -60,14 +60,9 @@
 </head>
 
 <body>
-    <!-- Header Section -->
-    <div class="container py-1">
-        <?php include 'banner.php'; ?>
-        <?php include 'menu.php'; ?>
-    </div>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="main-content-auth">
         <div class="auth-page">
             <div class="auth-card">
                 <h3>Sign Up</h3>
