@@ -1,39 +1,96 @@
 <?php
 session_start();
-$conn = new mysqli("localhost", "root", "", "ArtShopDB", 3306);
+require_once 'config.php';
+
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Check if user is logged in
 $currentUsername = $_SESSION['username'] ?? '';
 if ($currentUsername === '') {
     header('Location: login.php');
     exit();
 }
 
-
+/**
+ * Save uploaded image (unchanged)
+ */
 function saveUploadedImage($file, $prefix) {
     if (empty($file['name']) || !is_uploaded_file($file['tmp_name'])) {
         return '';
     }
-
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($extension, $allowedExtensions, true)) {
         return '';
     }
-
     $filename = $prefix . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
-    $targetPath = __DIR__ . '/images/' . $filename;
+    $targetPath = __DIR__ . '/' . UPLOAD_DIR . $filename;
     if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
         return '';
     }
-
     return $filename;
 }
 
-// Fetch user data
+/**
+ * Delete a file if it exists (used for cleanup)
+ */
+function deleteFileIfExists($filePath) {
+    if ($filePath && file_exists($filePath)) {
+        unlink($filePath);
+    }
+}
+
+// ---------- ACCOUNT DELETION ----------
+if (isset($_POST['delete_account']) && $_POST['delete_account'] === 'confirm') {
+    // 1. Get all user's artworks to delete their images
+    $artStmt = $conn->prepare("SELECT image_name FROM Artdata WHERE owner = ?");
+    $artStmt->bind_param("s", $currentUsername);
+    $artStmt->execute();
+    $artResult = $artStmt->get_result();
+    while ($row = $artResult->fetch_assoc()) {
+        if (!empty($row['image_name'])) {
+            deleteFileIfExists(__DIR__ . '/' . UPLOAD_DIR . $row['image_name']);
+        }
+    }
+    $artStmt->close();
+
+    // 2. Delete all artwork records for this user
+    $delArtStmt = $conn->prepare("DELETE FROM Artdata WHERE owner = ?");
+    $delArtStmt->bind_param("s", $currentUsername);
+    $delArtStmt->execute();
+    $delArtStmt->close();
+
+    // 3. Delete user's profile picture and banner images
+    $userStmt = $conn->prepare("SELECT profile_picture, banner_image FROM users WHERE name = ?");
+    $userStmt->bind_param("s", $currentUsername);
+    $userStmt->execute();
+    $userResult = $userStmt->get_result();
+    if ($userRow = $userResult->fetch_assoc()) {
+        if (!empty($userRow['profile_picture'])) {
+            deleteFileIfExists(__DIR__ . '/' . UPLOAD_DIR . $userRow['profile_picture']);
+        }
+        if (!empty($userRow['banner_image'])) {
+            deleteFileIfExists(__DIR__ . '/' . UPLOAD_DIR . $userRow['banner_image']);
+        }
+    }
+    $userStmt->close();
+
+    // 4. Delete the user record
+    $delUserStmt = $conn->prepare("DELETE FROM users WHERE name = ?");
+    $delUserStmt->bind_param("s", $currentUsername);
+    $delUserStmt->execute();
+    $delUserStmt->close();
+
+    // 5. Destroy session and redirect
+    session_destroy();
+    header('Location: index.php?deleted=1');
+    exit();
+}
+// ----------------------------------------
+
+// Fetch user data (same as before)
 $userData = [
     'name' => $currentUsername,
     'profile_picture' => '',
@@ -54,17 +111,16 @@ if ($result->num_rows > 0) {
         'banner_image' => $row['banner_image'] ?? ''
     ];
 }
+$stmt->close();
 
-// Handle form submission
 $message = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_account'])) {
     $newUsername = trim($_POST['username'] ?? '');
     $galleryName = trim($_POST['gallery_name'] ?? '');
 
     if ($newUsername === '') {
         $message = 'Username is required.';
     } else {
-        // Check if username is already taken
         $checkStmt = $conn->prepare("SELECT name FROM users WHERE name = ? AND name != ?");
         $checkStmt->bind_param("ss", $newUsername, $currentUsername);
         $checkStmt->execute();
@@ -86,7 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $bannerImage = $uploadedBannerImage;
             }
 
-            // Update database
             $updateStmt = $conn->prepare("UPDATE users SET name = ?, profile_picture = ?, gallery_name = ?, banner_image = ? WHERE name = ?");
             $updateStmt->bind_param("sssss", $newUsername, $profilePicture, $galleryName, $bannerImage, $currentUsername);
             if ($updateStmt->execute()) {
@@ -105,21 +160,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Prepare image sources
-// Custom image  
-if (!empty($userData['profile_picture']) && file_exists(__DIR__ . '/images/' . $userData['profile_picture'])) {
-    $profileImageSrc = 'images/' . htmlspecialchars($userData['profile_picture']);
-}
-else {
+if (!empty($userData['profile_picture']) && file_exists(__DIR__ . '/' . UPLOAD_DIR . $userData['profile_picture'])) {
+    $profileImageSrc = UPLOAD_DIR . htmlspecialchars($userData['profile_picture']);
+} else {
     $profileImageSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cellipse cx="32" cy="48" rx="20" ry="16" fill="%23ffffff"/%3E%3C/svg%3E';
 }
 
 $bannerImageSrc = !empty($userData['banner_image'])
-    ? 'images/' . htmlspecialchars($userData['banner_image'])
+    ? UPLOAD_DIR . htmlspecialchars($userData['banner_image'])
     : 'images/banner.jpg';
 
 $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'My Gallery';
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -128,29 +180,22 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link href="style.css" rel="stylesheet">
+    <link href="style.css?v=3" rel="stylesheet">
 </head>
-
 <body>
-    <!-- Header Section -->
     <div class="container py-1">
         <?php include 'banner.php'; ?>
         <?php include 'menu.php'; ?>
     </div>
-
-    <!-- Main Content -->
     <div class="main-content">
         <div class="container py-4">
-            <!-- Status Message -->
             <?php if ($message !== ''): ?>
                 <div class="alert alert-info alert-dismissible fade show" role="alert">
                     <?php echo htmlspecialchars($message); ?>
                 </div>
             <?php endif; ?>
-
-            <!-- Profile Layout -->
             <div class="row g-4">
-                <!-- Profile Card -->
+                <!-- Profile Card (left) -->
                 <div class="col-lg-4">
                     <div class="card shadow-sm">
                         <img src="<?php echo htmlspecialchars($bannerImageSrc); ?>" 
@@ -168,48 +213,48 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                     </div>
                 </div>
 
-                <!-- Edit Profile Form -->
+                <!-- Edit Profile Form (right) -->
                 <div class="col-lg-8">
                     <div class="card shadow-sm">
                         <div class="card-body">
                             <h3 class="card-title mb-4">Edit Profile</h3>
                             <form method="post" enctype="multipart/form-data">
-                                <!-- Username Field -->
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Username</label>
                                     <input type="text" id="username" name="username" class="form-control" value="<?php echo htmlspecialchars($userData['name']); ?>" required>
                                 </div>
-
-                                <!-- Profile Picture Field -->
                                 <div class="mb-3">
                                     <label for="profile_picture" class="form-label">Profile Picture</label>
-                                    <input type="file" id="profile_picture"name="profile_picture" class="form-control" accept="image/*">
+                                    <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
                                 </div>
-
-                                <!-- Gallery Name Field -->
                                 <div class="mb-3">
                                     <label for="gallery_name" class="form-label">Gallery Name</label>
                                     <input type="text" id="gallery_name" name="gallery_name" class="form-control" value="<?php echo htmlspecialchars($galleryName); ?>">
                                 </div>
-
-                                <!-- Banner Image Field -->
                                 <div class="mb-4">
                                     <label for="banner_image" class="form-label">Banner Image</label>
-                                    <input type="file" id="banner_image"name="banner_image" class="form-control" accept="image/*">
+                                    <input type="file" id="banner_image" name="banner_image" class="form-control" accept="image/*">
                                 </div>
-
-                                <!-- Submit Button -->
                                 <button type="submit" class="btn btn-primary btn-lg w-100">Save Profile</button>
                             </form>
+
+                            <!-- ===== DELETE ACCOUNT SECTION ===== -->
+                            <hr class="my-4">
+                            <div class="text-center">
+                                <form method="post" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone. All your artwork and data will be permanently removed.')">
+                                    <input type="hidden" name="delete_account" value="confirm">
+                                    <button type="submit" class="btn btn-danger btn-lg w-100">
+                                          Delete My Account
+                                    </button>
+                                </form>
+                                <p class="text-muted small mt-2">This will remove all your artworks and profile data.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div> <!-- .row -->
-        </div> <!-- .container -->
-    </div> <!-- .main-content -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>
-
-<?php
-    $conn->close();
-?>
+<?php $conn->close(); ?>
