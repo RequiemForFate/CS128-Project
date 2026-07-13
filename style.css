@@ -1,73 +1,77 @@
-body {
-    margin: 0;
-    min-height: 100vh;
-}
-
-h1 {
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center;
-}
-
-h3 {
-    color: #04011b;
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center;
-}
-
-h2 {
-    color: #fffae6;
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    text-align: center;
-}
-
-.menu {
-    background: #4563ea;
-    padding: 10px;
-    border: 1px solid #21010b;
-}
-
-.menu a {
-    margin-right: 15px;
-    text-decoration: none;
-    color: #000;
-}
-
-.menu-right {
-    float: right;
-}
-
+/* ================================================
+   RESET & BASE
+   ================================================ */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    background: #f5f5f5;
+}
 
-/* 2. Style the sidebar */
+h1, h2, h3 {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    text-align: center;
+}
+h1 { color: #111; }
+h2 { color: #fffae6; }
+h3 { color: #04011b; }
 
+/* ================================================
+   SIDEBAR
+   ================================================ */
 .sidebar {
     height: 100vh;
-    /* Full-screen height */
     width: 250px;
-    /* Set width of sidebar */
     position: fixed;
-    /* Stay in place on scroll */
     z-index: 1000;
-    /* Stay on top of other content */
     top: 0;
-    /* Stay at the top */
     left: 0;
-    /* Position on the left side */
-    background-color: #111;
-    /* Dark background color */
+    background-color: #2b00ffa3;
     padding-top: 60px;
     transform: translateX(0);
     transition: transform 0.25s ease, opacity 0.25s ease;
 }
-
 .sidebar.closed {
     transform: translateX(-100%);
     opacity: 0;
+}
+.sidebar a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #ffffff;
+    display: block;
+}
+.sidebar a:hover {
+    color: #f1f1f1;
+    background-color: #aa00ff;
+}
+.sidebar .profile-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #ffffff;
+}
+.sidebar .profile-link:hover {
+    background-color: #575757;
+}
+.sidebar .profile-avatar {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.username-display {
+    font-size: 16px;
+    color: #fff;
 }
 
 .sidebar-toggle {
@@ -76,8 +80,8 @@ h2 {
     left: 15px;
     z-index: 1100;
     border: none;
-    background: #111;
-    color: #fff;
+    background: #1428ff;
+    color: #ffffff;
     padding: 10px 15px;
     font-size: 16px;
     cursor: pointer;
@@ -85,183 +89,361 @@ h2 {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-.sidebar a {
-    padding: 10px 15px;
-    text-decoration: none;
-    font-size: 18px;
-    color: #818181;
-    display: block;
-    /* Make links stack vertically */
-}
-
-.sidebar a:hover {
-    color: #f1f1f1;
-    background-color: #575757;
-}
-
-
-/* 3. Style the links inside the sidebar */
-
-.sidebar a {
-    padding: 10px 15px;
-    text-decoration: none;
-    font-size: 18px;
-    color: #818181;
-    display: block;
-    /* Make links stack vertically */
-}
-
-
-/* Change color on hover */
-
-.sidebar a:hover {
-    color: #f1f1f1;
-    background-color: #575757;
-}
-
-.card {
+/* ================================================
+   MAIN CONTENT
+   ================================================ */
+.main-content {
+    flex: 1;
+    margin-left: 250px;
+    transition: margin-left 0.25s ease;
     padding: 20px;
-    margin: 50px;
-    align-items: center;
-    background-color: #6f9abd;
+}
+body.sidebar-closed .main-content {
+    margin-left: 0;
 }
 
-.gallery-card {
-    overflow: hidden;
+.main-content-auth {
     display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 0;
-    margin: 0;
-    align-items: stretch;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
 }
-
-.gallery-image-wrapper {
+.auth-page {
     width: 100%;
-    overflow: hidden;
-    background: #f2f2f2;
-    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
 }
+.auth-card {
+    width: 100%;
+    max-width: 520px;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    margin: 0 15px;
+}
+.auth-form .form-control {
+    width: 100% !important;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    min-height: 44px;
+}
+.auth-link {
+    text-align: center;
+    margin-top: 15px;
+}
+.auth-link a { color: #4563ea; text-decoration: none; }
 
-.gallery-preview-image {
+/* ================================================
+   BANNER
+   ================================================ */
+.banner {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+.banner-image {
+    display: block;
     width: 100%;
     height: auto;
-    object-fit: contain;
-    display: block;
+    min-height: 120px;
+    max-height: 280px;
+    object-fit: cover;
+    padding: 0;
+    border-radius: 15px;
+}
+.banner-text {
+    background-color: #ffffff;
+    padding: 15px 20px;
+    border-radius: 15px;
 }
 
-.gallery-card .card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding: 1rem;
-    flex: 1;
+/* ================================================
+   CARDS & FORMS – FULLY RESPONSIVE
+   ================================================ */
+.card {
+    padding: 25px;
+    margin: 20px auto;
+    max-width: 800px;
+    width: 100%;
+    background-color: #6f9abd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
-label {
+/* ==== ALL form elements inside .card ==== */
+.card label {
     font-weight: bold;
     color: #04011b;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 4px;
 }
 
-input {
-    width: 500px;
-    padding: 8px;
-    margin: 5px 15px;
+.card input[type="text"],
+.card input[type="password"],
+.card input[type="file"],
+.card .form-control {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px 12px !important;
+    margin: 0 0 8px 0 !important;   /* remove left/right margins */
     background-color: #b5cbd9;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box !important;
+    display: block;
+    font-size: 16px; /* prevents iOS zoom */
 }
 
-button {
-    padding: 8px 15px;
+/* File input specific */
+.card input[type="file"] {
+    padding: 8px 12px;
+    background-color: #fff;
+}
+
+/* Buttons container */
+.card .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+    width: 100%;
+    justify-content: center;
+}
+
+.card .btn-group .btn {
+    flex: 1 1 auto;
+    min-width: 80px;
+    max-width: 200px;
+    padding: 10px 20px;
     border: none;
     color: #fff;
-    margin-right: 5px;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    border: 1px solid #4e0612;
-}
-
-.center {
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
     text-align: center;
+    box-sizing: border-box;
 }
 
-.gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-    margin-top: 30px;
-}
+.card .btn-primary { background: #007bff; }
+.card .btn-primary:hover { background: #0069d9; }
+.card .btn-warning { background: #ffc107; color: #212529; }
+.card .btn-warning:hover { background: #e0a800; }
+.card .btn-danger { background: #dc3545; }
+.card .btn-danger:hover { background: #c82333; }
 
+/* ================================================
+   GALLERY
+   ================================================ */
 .gallery-wrapper {
     margin: 20px 0 40px 0;
-    padding: 10px 15px;
+    padding: 10px 0;
     background: transparent;
 }
-
 .gallery-row {
     width: 100%;
 }
-
+.gallery-card {
+    border-radius: 24px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 20px 45px rgba(15, 30, 65, 0.08);
+    padding: 10px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    height: 100%;
+}
+.gallery-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 55px rgba(15, 30, 65, 0.12);
+}
 .gallery-img {
     width: 100%;
-    height: 300px;
+    display: block;
+    height: 260px;
     object-fit: cover;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    border-radius: 8px;
-    display: block;
+    border-radius: 12px;
+}
+.gallery-wrapper .card-img-top {
+    height: 200px;
+    object-fit: cover;
 }
 
-.gallery-img:hover {
-    transform: scale(1.05);
-    filter: brightness(70%);
-}
-
-.gallery a {
-    text-decoration: none;
-    display: block;
+/* Force all gallery cards to have consistent badge position */
+.gallery-wrapper .card {
+    display: flex;
+    flex-direction: column;
     height: 100%;
 }
 
-.photo {
-    background: rgb(208, 208, 208);
+.gallery-wrapper .card-body {
+    flex: 1;
+    display: flex;
     flex-direction: column;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
-    text-align: center;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.photo img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 8px;
+.gallery-wrapper .card-body .badge {
+    margin-top: 8px;
+    align-self: center;
 }
 
-.photo p {
-    margin-top: 10px;
-}
-
+/* ================================================
+   VIEW ART PAGE
+   ================================================ */
 .big-image {
     width: 100%;
-    max-height: 500px;
+    max-height: 80vh;
     object-fit: contain;
-    border-radius: 8px;
+    display: block;
+    border-radius: 12px;
 }
-
 .close-btn {
     position: absolute;
-    top: 10px;
+    top: 20px;
     right: 20px;
-    font-size: 32px;
-    font-weight: bold;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f8f9fa;
     color: #333;
     text-decoration: none;
-    cursor: pointer;
-    z-index: 10;
+    font-size: 28px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    transition: 0.2s;
+}
+.close-btn:hover {
+    background: #dc3545;
+    color: white;
+    transform: scale(1.1);
 }
 
-.close-btn:hover {
-    color: #666;
+/* ================================================
+   RESPONSIVE MEDIA QUERIES
+   ================================================ */
+
+/* Tablet */
+@media screen and (max-width: 1024px) {
+    .sidebar { width: 220px; padding-top: 50px; }
+    .main-content { margin-left: 220px; padding: 15px; }
+    .gallery-img { height: 220px; }
+}
+
+/* Mobile (phones) */
+@media screen and (max-width: 768px) {
+    .sidebar {
+        width: 200px;
+        padding-top: 40px;
+    }
+    .main-content {
+        margin-left: 0;
+        padding: 10px;
+    }
+    body.sidebar-closed .main-content {
+        margin-left: 0;
+    }
+    .sidebar-toggle {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+
+    /* ==== CARD FIXES FOR MOBILE ==== */
+    .card {
+        margin: 10px auto;
+        padding: 15px;
+        width: 95%;
+        max-width: 100%;
+        border-radius: 8px;
+    }
+
+    .card label {
+        font-size: 14px;
+        margin-top: 10px;
+    }
+
+    .card input[type="text"],
+    .card input[type="password"],
+    .card input[type="file"],
+    .card .form-control {
+        font-size: 16px !important;  /* prevents iOS zoom */
+        padding: 12px !important;
+    }
+
+    .card .btn-group {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .card .btn-group .btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: none;
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+
+    .gallery-img {
+        height: 180px;
+    }
+    .banner-image {
+        min-height: 80px;
+        max-height: 180px;
+    }
+    .banner-text {
+        font-size: 1.2rem;
+        padding: 10px 15px;
+    }
+    .auth-card {
+        padding: 20px;
+        margin: 0 10px;
+    }
+    .big-image {
+        max-height: 60vh;
+    }
+}
+
+/* Small phones (<= 480px) */
+@media screen and (max-width: 480px) {
+    .sidebar {
+        width: 180px;
+        padding-top: 30px;
+    }
+    .sidebar a {
+        font-size: 15px;
+        padding: 8px 12px;
+    }
+    .gallery-img {
+        height: 150px;
+    }
+    .gallery-card {
+        padding: 5px;
+    }
+    h1 { font-size: 1.5rem; }
+    h3 { font-size: 1.2rem; }
+    .card {
+        padding: 12px;
+        width: 98%;
+        margin: 5px auto;
+    }
+    .card input[type="text"],
+    .card input[type="password"],
+    .card .form-control {
+        font-size: 14px !important;
+        padding: 10px !important;
+    }
+    .card .btn-group .btn {
+        font-size: 14px;
+        padding: 10px 15px;
+    }
 }
