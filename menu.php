@@ -40,7 +40,7 @@ if (!empty($username) && extension_loaded('mysqli')) {
 <div class="sidebar" id="sidebar">
     <?php if (!empty($username)): ?>
         <!-- Logged-in user -->
-        <a href="Bios.php?user=<?php echo urlencode($username); ?>" class="profile-link">
+        <a href="bios.php?user=<?php echo urlencode($username); ?>" class="profile-link">
             <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" alt="Profile" class="profile-avatar">
             <span class="username-display">
                 <?php 

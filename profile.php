@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_account'])) {
                 $userData['show_gallery_on_bio'] = $showGalleryOnBio;
                 $message = 'Profile updated successfully!';
                 
-                header('Location: Bios.php?user=' . urlencode($newUsername));
+                header('Location: bios.php?user=' . urlencode($newUsername));
                 exit();
             } else {
                 $message = 'Unable to update your profile.';

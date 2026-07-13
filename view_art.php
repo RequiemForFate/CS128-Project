@@ -130,7 +130,7 @@ if ($id <= 0) {
                         <?php if ($row['isAnonymous']): ?>
                         Anonymous
                         <?php else: ?>
-                        <a href="bio.php?user=<?php echo urlencode($row['owner']); ?>"><?php echo htmlspecialchars($row['owner']); ?></a>
+                        <a href="bios.php?user=<?php echo urlencode($row['owner']); ?>"><?php echo htmlspecialchars($row['owner']); ?></a>
                         <?php endif; ?>
 </p>
                         <p><?php echo autoLink($row['ArtDes']); ?></p>
