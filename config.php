@@ -1,6 +1,6 @@
 <?php
 define('DB_HOST', 'localhost');   // database hosting (unique to each site)
-define('DB_USER', 'roots');                // database username
+define('DB_USER', 'root');                // database username
 define('DB_PASS', '');             // database password
 define('DB_NAME', 'ArtShopDB');      // database name
 

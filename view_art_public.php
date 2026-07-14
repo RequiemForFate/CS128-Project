@@ -4,11 +4,6 @@ require_once 'config.php';
 
 $currentUser = $_SESSION['username'] ?? '';
 
-if ($currentUser === '') {
-    header('Location: login.php');
-    exit();
-}
-
 function resolveImagePath($imageName) {
     if (empty($imageName)) return '';
     $candidatePaths = [
@@ -37,12 +32,16 @@ if ($id <= 0) {
     // --- Build query based on login status ---
     if ($currentUser !== '') {
         // Logged in: can see own private + all public
-        $sql = "SELECT * FROM Artdata
-        WHERE ArtID = ?
-        AND owner = ?";
+        $sql = "SELECT * FROM Artdata WHERE ArtID = ? AND (owner = ? OR isPublic = 1)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("is", $id, $currentUser);
-    } 
+    } else {
+        // Guest: can only see public artworks
+        $sql = "SELECT * FROM Artdata WHERE ArtID = ? AND isPublic = 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+    }
+
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
@@ -51,16 +50,20 @@ if ($id <= 0) {
         $errorMessage = 'Artwork not found or you do not have permission to view it.';
     } else {
         $imagePath = resolveImagePath($row['image_name'] ?? '');
+            if (!file_exists($imagePath)) {
+                $imagePath = 'images/missing-image.png';
+            }
         $currentID = $row['ArtID'];
+
+        $prev = null;
+        $next = null;
 
         // --- Previous / Next navigation (respects visibility rules) ---
         if ($currentUser !== '') {
             $prevStmt = $conn->prepare("
                 SELECT ArtID FROM Artdata 
-                WHERE ArtID < ?
-                AND owner = ?
-                ORDER BY ArtID DESC
-                LIMIT 1
+                WHERE ArtID < ? AND (owner = ? OR isPublic = 1) 
+                ORDER BY ArtID DESC LIMIT 1
             ");
             $prevStmt->bind_param("is", $currentID, $currentUser);
             $prevStmt->execute();
@@ -69,10 +72,8 @@ if ($id <= 0) {
 
             $nextStmt = $conn->prepare("
                 SELECT ArtID FROM Artdata 
-                WHERE ArtID > ?
-                AND owner = ?
-                ORDER BY ArtID ASC
-                LIMIT 1
+                WHERE ArtID > ? AND (owner = ? OR isPublic = 1) 
+                ORDER BY ArtID ASC LIMIT 1
             ");
             $nextStmt->bind_param("is", $currentID, $currentUser);
             $nextStmt->execute();
@@ -115,7 +116,7 @@ if ($id <= 0) {
 <body>
     <div class="main-content">
         <div class="container mt-5 position-relative">
-            <a href="Archive.php" class="close-btn">&times;</a>
+            <a href="Artwork.php" class="close-btn">&times;</a>
             <?php if (!$row): ?>
                 <div class="alert alert-warning">
                     <?php echo htmlspecialchars($errorMessage); ?>
@@ -141,14 +142,14 @@ if ($id <= 0) {
                         <p><?php echo autoLink($row['ArtDes']); ?></p>
                         <div class="d-flex justify-content-between mt-5 gap-2">
                             <?php if ($prev) { ?>
-                                <a href="view_art.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
+                                <a href="view_art_public.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
                                     ← Previous
                                 </a>
                             <?php } else { ?>
                                 <div></div>
                             <?php } ?>
                             <?php if ($next) { ?>
-                                <a href="view_art.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
+                                <a href="view_art_public.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
                                     Next →
                                 </a>
                             <?php } ?>
