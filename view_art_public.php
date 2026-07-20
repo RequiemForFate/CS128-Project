@@ -4,12 +4,21 @@ require_once 'config.php';
 
 $currentUser = $_SESSION['username'] ?? '';
 
+<<<<<<< HEAD
 function resolveMediaPath($fileName) {
     if (empty($fileName)) return '';
     $candidatePaths = [
         UPLOAD_DIR . $fileName,
         $fileName,
         UPLOAD_DIR . basename($fileName),
+=======
+function resolveImagePath($imageName) {
+    if (empty($imageName)) return '';
+    $candidatePaths = [
+        UPLOAD_DIR . $imageName,
+        $imageName,
+        UPLOAD_DIR . basename($imageName),
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
     ];
     foreach ($candidatePaths as $path) {
         if ($path !== '' && file_exists($path)) return $path;
@@ -17,33 +26,56 @@ function resolveMediaPath($fileName) {
     return $candidatePaths[0];
 }
 
+<<<<<<< HEAD
 // Helper to check if file is video
 function isVideoFile($filePath) {
     $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
     return in_array($ext, ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv']);
 }
 
+=======
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
 $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+<<<<<<< HEAD
 $ownerFilter = isset($_GET['owner']) ? trim($_GET['owner']) : null;
+=======
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
 $row = null;
 $errorMessage = '';
 
 if ($id <= 0) {
     $errorMessage = 'Invalid artwork ID.';
 } else {
+<<<<<<< HEAD
     $sql = "SELECT * FROM Artdata WHERE ArtID = ? AND isPublic = 1";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
+=======
+    // --- Build query based on login status ---
+    if ($currentUser !== '') {
+        // Logged in: can see own private + all public
+        $sql = "SELECT * FROM Artdata WHERE ArtID = ? AND (owner = ? OR isPublic = 1)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("is", $id, $currentUser);
+    } else {
+        // Guest: can only see public artworks
+        $sql = "SELECT * FROM Artdata WHERE ArtID = ? AND isPublic = 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+    }
+
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
 
     if (!$row) {
+<<<<<<< HEAD
         $errorMessage = 'Artwork not found or it is not public.';
     } else {
         $mediaPath = resolveMediaPath($row['image_name'] ?? '');
@@ -89,6 +121,61 @@ if ($id <= 0) {
         $nextResult = $nextStmt->get_result();
         $next = $nextResult->fetch_assoc();
         $nextStmt->close();
+=======
+        $errorMessage = 'Artwork not found or you do not have permission to view it.';
+    } else {
+        $imagePath = resolveImagePath($row['image_name'] ?? '');
+            if (!file_exists($imagePath)) {
+                $imagePath = 'images/missing-image.png';
+            }
+        $currentID = $row['ArtID'];
+
+        $prev = null;
+        $next = null;
+
+        // --- Previous / Next navigation (respects visibility rules) ---
+        if ($currentUser !== '') {
+            $prevStmt = $conn->prepare("
+                SELECT ArtID FROM Artdata 
+                WHERE ArtID < ? AND (owner = ? OR isPublic = 1) 
+                ORDER BY ArtID DESC LIMIT 1
+            ");
+            $prevStmt->bind_param("is", $currentID, $currentUser);
+            $prevStmt->execute();
+            $prevResult = $prevStmt->get_result();
+            $prev = $prevResult->fetch_assoc();
+
+            $nextStmt = $conn->prepare("
+                SELECT ArtID FROM Artdata 
+                WHERE ArtID > ? AND (owner = ? OR isPublic = 1) 
+                ORDER BY ArtID ASC LIMIT 1
+            ");
+            $nextStmt->bind_param("is", $currentID, $currentUser);
+            $nextStmt->execute();
+            $nextResult = $nextStmt->get_result();
+            $next = $nextResult->fetch_assoc();
+        } else {
+            $prevStmt = $conn->prepare("
+                SELECT ArtID FROM Artdata 
+                WHERE ArtID < ? AND isPublic = 1 
+                ORDER BY ArtID DESC LIMIT 1
+            ");
+            $prevStmt->bind_param("i", $currentID);
+            $prevStmt->execute();
+            $prevResult = $prevStmt->get_result();
+            $prev = $prevResult->fetch_assoc();
+
+            $nextStmt = $conn->prepare("
+                SELECT ArtID FROM Artdata 
+                WHERE ArtID > ? AND isPublic = 1 
+                ORDER BY ArtID ASC LIMIT 1
+            ");
+            $nextStmt->bind_param("i", $currentID);
+            $nextStmt->execute();
+            $nextResult = $nextStmt->get_result();
+            $next = $nextResult->fetch_assoc();
+        }
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
     }
 }
 ?>
@@ -105,16 +192,21 @@ if ($id <= 0) {
 <body>
     <div class="main-content">
         <div class="container mt-5 position-relative">
+<<<<<<< HEAD
             <?php 
                 $backLink = ($ownerFilter !== null && $ownerFilter !== '') 
                     ? 'bios.php?user=' . urlencode($ownerFilter) 
                     : 'index.php';
             ?>
             <a href="<?php echo $backLink; ?>" class="close-btn">&times;</a>
+=======
+            <a href="Artwork.php" class="close-btn">&times;</a>
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
             <?php if (!$row): ?>
                 <div class="alert alert-warning">
                     <?php echo htmlspecialchars($errorMessage); ?>
                 </div>
+<<<<<<< HEAD
             <?php else: 
                 $isVideo = isVideoFile($mediaPath);
             ?>
@@ -128,10 +220,20 @@ if ($id <= 0) {
                         <?php else: ?>
                             <img src="<?php echo htmlspecialchars($mediaPath); ?>" class="big-image" alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
                         <?php endif; ?>
+=======
+            <?php else: ?>
+                <div class="row align-items-center g-4">
+                    <div class="col-md-7">
+                        <img
+                            src="<?php echo htmlspecialchars($imagePath); ?>"
+                            class="big-image"
+                            alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
                     </div>
                     <div class="col-md-5">
                         <h1><?php echo htmlspecialchars($row['ArtName']); ?></h1>
                         <p class="text-muted">
+<<<<<<< HEAD
                             <strong>Artist:</strong> 
                             <?php if ($row['isAnonymous']): ?>
                                 Anonymous
@@ -159,11 +261,25 @@ if ($id <= 0) {
                                 }
                             ?>
                                 <a href="<?php echo $prevLink; ?>" class="btn btn-dark">
+=======
+                        <strong>Artist:</strong> 
+                        <?php if ($row['isAnonymous']): ?>
+                        Anonymous
+                        <?php else: ?>
+                        <a href="bios.php?user=<?php echo urlencode($row['owner']); ?>"><?php echo htmlspecialchars($row['owner']); ?></a>
+                        <?php endif; ?>
+</p>
+                        <p><?php echo autoLink($row['ArtDes']); ?></p>
+                        <div class="d-flex justify-content-between mt-5 gap-2">
+                            <?php if ($prev) { ?>
+                                <a href="view_art_public.php?id=<?php echo htmlspecialchars($prev['ArtID']); ?>" class="btn btn-dark">
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
                                     ← Previous
                                 </a>
                             <?php } else { ?>
                                 <div></div>
                             <?php } ?>
+<<<<<<< HEAD
                             <?php if ($next) { 
                                 $nextLink = 'view_art_public.php?id=' . htmlspecialchars($next['ArtID']);
                                 if ($ownerFilter !== null && $ownerFilter !== '') {
@@ -171,6 +287,10 @@ if ($id <= 0) {
                                 }
                             ?>
                                 <a href="<?php echo $nextLink; ?>" class="btn btn-dark">
+=======
+                            <?php if ($next) { ?>
+                                <a href="view_art_public.php?id=<?php echo htmlspecialchars($next['ArtID']); ?>" class="btn btn-dark">
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
                                     Next →
                                 </a>
                             <?php } ?>
@@ -182,4 +302,8 @@ if ($id <= 0) {
     </div>
 </body>
 </html>
+<<<<<<< HEAD
 <?php $conn->close(); ?>
+=======
+<?php $conn->close(); ?>
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87

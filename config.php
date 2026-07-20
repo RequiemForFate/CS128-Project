@@ -1,8 +1,15 @@
 <?php
+<<<<<<< HEAD
 define('DB_HOST', 'sql211.infinityfree.com');   // database hosting (unique to each site)
 define('DB_USER', 'if0_42372622');                // database username
 define('DB_PASS', '007009ixx');             // database password
 define('DB_NAME', 'if0_42372622_artport');      // database name
+=======
+define('DB_HOST', 'localhost');   // database hosting (unique to each site)
+define('DB_USER', 'root');                // database username
+define('DB_PASS', '');             // database password
+define('DB_NAME', 'ArtShopDB');      // database name
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
 
 // Upload directory
 define('UPLOAD_DIR', 'images/');

@@ -8,8 +8,18 @@ if ($currentUser === '') {
     exit();
 }
 
+<<<<<<< HEAD
 function resolveMediaPath($fileName) {
     if (empty($fileName)) return '';
+=======
+if ($currentUser === '') {
+    header('Location: login.php');
+    exit();
+}
+
+function resolveImagePath($imageName) {
+    if (empty($imageName)) return '';
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
     $candidatePaths = [
         UPLOAD_DIR . $fileName,
         $fileName,
@@ -38,9 +48,21 @@ $errorMessage = '';
 if ($id <= 0) {
     $errorMessage = 'Invalid artwork ID.';
 } else {
+<<<<<<< HEAD
     $sql = "SELECT * FROM Artdata WHERE ArtID = ? AND owner = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("is", $id, $currentUser);
+=======
+    // --- Build query based on login status ---
+    if ($currentUser !== '') {
+        // Logged in: can see own private + all public
+        $sql = "SELECT * FROM Artdata
+        WHERE ArtID = ?
+        AND owner = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("is", $id, $currentUser);
+    } 
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
@@ -54,6 +76,7 @@ if ($id <= 0) {
         }
         $currentID = $row['ArtID'];
 
+<<<<<<< HEAD
         $prevStmt = $conn->prepare("
             SELECT ArtID FROM Artdata 
             WHERE owner = ? AND ArtID < ? 
@@ -73,6 +96,54 @@ if ($id <= 0) {
         $nextStmt->execute();
         $nextResult = $nextStmt->get_result();
         $next = $nextResult->fetch_assoc();
+=======
+        // --- Previous / Next navigation (respects visibility rules) ---
+        if ($currentUser !== '') {
+            $prevStmt = $conn->prepare("
+                SELECT ArtID FROM Artdata 
+                WHERE ArtID < ?
+                AND owner = ?
+                ORDER BY ArtID DESC
+                LIMIT 1
+            ");
+            $prevStmt->bind_param("is", $currentID, $currentUser);
+            $prevStmt->execute();
+            $prevResult = $prevStmt->get_result();
+            $prev = $prevResult->fetch_assoc();
+
+            $nextStmt = $conn->prepare("
+                SELECT ArtID FROM Artdata 
+                WHERE ArtID > ?
+                AND owner = ?
+                ORDER BY ArtID ASC
+                LIMIT 1
+            ");
+            $nextStmt->bind_param("is", $currentID, $currentUser);
+            $nextStmt->execute();
+            $nextResult = $nextStmt->get_result();
+            $next = $nextResult->fetch_assoc();
+        } else {
+            $prevStmt = $conn->prepare("
+                SELECT ArtID FROM Artdata 
+                WHERE ArtID < ? AND isPublic = 1 
+                ORDER BY ArtID DESC LIMIT 1
+            ");
+            $prevStmt->bind_param("i", $currentID);
+            $prevStmt->execute();
+            $prevResult = $prevStmt->get_result();
+            $prev = $prevResult->fetch_assoc();
+
+            $nextStmt = $conn->prepare("
+                SELECT ArtID FROM Artdata 
+                WHERE ArtID > ? AND isPublic = 1 
+                ORDER BY ArtID ASC LIMIT 1
+            ");
+            $nextStmt->bind_param("i", $currentID);
+            $nextStmt->execute();
+            $nextResult = $nextStmt->get_result();
+            $next = $nextResult->fetch_assoc();
+        }
+>>>>>>> 68861ae35a251836cd24e898e11ae4d5f84d6c87
     }
 }
 ?>
@@ -89,7 +160,7 @@ if ($id <= 0) {
 <body>
     <div class="main-content">
         <div class="container mt-5 position-relative">
-            <a href="Artwork.php" class="close-btn">&times;</a>
+            <a href="Archive.php" class="close-btn">&times;</a>
             <?php if (!$row): ?>
                 <div class="alert alert-warning">
                     <?php echo htmlspecialchars($errorMessage); ?>
