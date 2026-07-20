@@ -13,14 +13,11 @@ if ($currentUsername === '') {
     exit();
 }
 
-/**
- * Save uploaded image
- */
 function saveUploadedImage($file, $prefix) {
     if (empty($file['name']) || !is_uploaded_file($file['tmp_name'])) {
         return '';
     }
-    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'];
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($extension, $allowedExtensions, true)) {
         return '';
@@ -33,16 +30,13 @@ function saveUploadedImage($file, $prefix) {
     return $filename;
 }
 
-/**
- * Delete a file if it exists
- */
 function deleteFileIfExists($filePath) {
     if ($filePath && file_exists($filePath)) {
         unlink($filePath);
     }
 }
 
-// ---------- ACCOUNT DELETION (unchanged) ----------
+// ---------- ACCOUNT DELETION ----------
 if (isset($_POST['delete_account']) && $_POST['delete_account'] === 'confirm') {
     $artStmt = $conn->prepare("SELECT image_name FROM Artdata WHERE owner = ?");
     $artStmt->bind_param("s", $currentUsername);
@@ -85,31 +79,31 @@ if (isset($_POST['delete_account']) && $_POST['delete_account'] === 'confirm') {
 }
 // ----------------------------------------
 
-// Fetch user data (including display_name)
-$userData = [
+// Fetch user data (gallery_name removed)
+$profileData = [
     'name' => $currentUsername,
     'display_name' => '',
     'profile_picture' => '',
-    'gallery_name' => '',
     'banner_image' => '',
     'bio_description' => '',
-    'show_gallery_on_bio' => 1
+    'show_gallery_on_bio' => 1,
+    'social_links' => ''
 ];
 
-$stmt = $conn->prepare("SELECT name, display_name, profile_picture, gallery_name, banner_image, bio_description, show_gallery_on_bio FROM users WHERE name = ?");
+$stmt = $conn->prepare("SELECT name, display_name, profile_picture, banner_image, bio_description, show_gallery_on_bio, social_links FROM users WHERE name = ?");
 $stmt->bind_param("s", $currentUsername);
 $stmt->execute();
 $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
-    $userData = [
+    $profileData = [
         'name' => $row['name'] ?? $currentUsername,
         'display_name' => $row['display_name'] ?? '',
         'profile_picture' => $row['profile_picture'] ?? '',
-        'gallery_name' => $row['gallery_name'] ?? '',
         'banner_image' => $row['banner_image'] ?? '',
         'bio_description' => $row['bio_description'] ?? '',
-        'show_gallery_on_bio' => $row['show_gallery_on_bio'] ?? 1
+        'show_gallery_on_bio' => $row['show_gallery_on_bio'] ?? 1,
+        'social_links' => $row['social_links'] ?? ''
     ];
 }
 $stmt->close();
@@ -118,11 +112,30 @@ $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_account'])) {
     $newUsername = trim($_POST['username'] ?? '');
     $newDisplayName = trim($_POST['display_name'] ?? '');
-    $galleryName = trim($_POST['gallery_name'] ?? '');
     $bioDescription = trim($_POST['bio_description'] ?? '');
     $showGalleryOnBio = isset($_POST['show_gallery_on_bio']) ? 1 : 0;
 
-    // --- VALIDATION: username must have NO spaces ---
+    // Process social links
+    $socialLinksRaw = trim($_POST['social_links'] ?? '');
+    $socialLinks = [];
+    if (!empty($socialLinksRaw)) {
+        $lines = explode("\n", $socialLinksRaw);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+            $parts = explode('|', $line, 2);
+            if (count($parts) === 2) {
+                $label = trim($parts[0]);
+                $url = trim($parts[1]);
+                if (!empty($label) && !empty($url)) {
+                    $socialLinks[] = ['label' => $label, 'url' => $url];
+                }
+            }
+        }
+    }
+    $socialLinksJSON = !empty($socialLinks) ? json_encode($socialLinks) : null;
+
+    // Validate username
     if ($newUsername === '') {
         $message = 'Username is required.';
     } elseif (strpos($newUsername, ' ') !== false) {
@@ -136,63 +149,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_account'])) {
         if ($checkResult->num_rows > 0) {
             $message = 'That username is already taken.';
         } else {
-            // Handle file uploads
-            $profilePicture = $userData['profile_picture'];
+            // File uploads
+            $profilePicture = $profileData['profile_picture'];
             $uploadedProfilePicture = saveUploadedImage($_FILES['profile_picture'] ?? [], 'profile');
             if ($uploadedProfilePicture !== '') {
                 $profilePicture = $uploadedProfilePicture;
             }
 
-            $bannerImage = $userData['banner_image'];
+            $bannerImage = $profileData['banner_image'];
             $uploadedBannerImage = saveUploadedImage($_FILES['banner_image'] ?? [], 'banner');
             if ($uploadedBannerImage !== '') {
                 $bannerImage = $uploadedBannerImage;
             }
 
-            // Update: include display_name
-            $updateStmt = $conn->prepare("UPDATE users SET name = ?, display_name = ?, profile_picture = ?, gallery_name = ?, banner_image = ?, bio_description = ?, show_gallery_on_bio = ? WHERE name = ?");
-            $updateStmt->bind_param("ssssssis", $newUsername, $newDisplayName, $profilePicture, $galleryName, $bannerImage, $bioDescription, $showGalleryOnBio, $currentUsername);
-            if ($updateStmt->execute()) {
+            $conn->begin_transaction();
+            try {
+                // Update without gallery_name
+                $updateStmt = $conn->prepare("UPDATE users SET name = ?, display_name = ?, profile_picture = ?, banner_image = ?, bio_description = ?, show_gallery_on_bio = ?, social_links = ? WHERE name = ?");
+                $updateStmt->bind_param("sssssiss", $newUsername, $newDisplayName, $profilePicture, $bannerImage, $bioDescription, $showGalleryOnBio, $socialLinksJSON, $currentUsername);
+                if (!$updateStmt->execute()) {
+                    throw new Exception("Failed to update user: " . $updateStmt->error);
+                }
+                $updateStmt->close();
+
+                if ($newUsername !== $currentUsername) {
+                    $updateArtStmt = $conn->prepare("UPDATE Artdata SET owner = ? WHERE owner = ?");
+                    $updateArtStmt->bind_param("ss", $newUsername, $currentUsername);
+                    if (!$updateArtStmt->execute()) {
+                        throw new Exception("Failed to update artwork ownership: " . $updateArtStmt->error);
+                    }
+                    $updateArtStmt->close();
+                }
+
+                $conn->commit();
+
                 $_SESSION['username'] = $newUsername;
                 $currentUsername = $newUsername;
-                $userData['name'] = $newUsername;
-                $userData['display_name'] = $newDisplayName;
-                $userData['profile_picture'] = $profilePicture;
-                $userData['gallery_name'] = $galleryName;
-                $userData['banner_image'] = $bannerImage;
-                $userData['bio_description'] = $bioDescription;
-                $userData['show_gallery_on_bio'] = $showGalleryOnBio;
-                $message = 'Profile updated successfully!';
-                
+                $profileData['name'] = $newUsername;
+                $profileData['display_name'] = $newDisplayName;
+                $profileData['profile_picture'] = $profilePicture;
+                $profileData['banner_image'] = $bannerImage;
+                $profileData['bio_description'] = $bioDescription;
+                $profileData['show_gallery_on_bio'] = $showGalleryOnBio;
+                $profileData['social_links'] = $socialLinksJSON;
+
                 header('Location: bios.php?user=' . urlencode($newUsername));
                 exit();
-            } else {
-                $message = 'Unable to update your profile.';
+
+            } catch (Exception $e) {
+                $conn->rollback();
+                $message = 'Error updating profile: ' . $e->getMessage();
             }
         }
     }
 }
 
 // Prepare image sources
-if (!empty($userData['profile_picture']) && file_exists(__DIR__ . '/' . UPLOAD_DIR . $userData['profile_picture'])) {
-    $profileImageSrc = UPLOAD_DIR . htmlspecialchars($userData['profile_picture']);
+if (!empty($profileData['profile_picture']) && file_exists(__DIR__ . '/' . UPLOAD_DIR . $profileData['profile_picture'])) {
+    $profileImageSrc = UPLOAD_DIR . htmlspecialchars($profileData['profile_picture']);
 } else {
     $profileImageSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cellipse cx="32" cy="48" rx="20" ry="16" fill="%23ffffff"/%3E%3C/svg%3E';
 }
 
-$bannerImageSrc = !empty($userData['banner_image'])
-    ? UPLOAD_DIR . htmlspecialchars($userData['banner_image'])
+$bannerImageSrc = !empty($profileData['banner_image'])
+    ? UPLOAD_DIR . htmlspecialchars($profileData['banner_image'])
     : 'images/banner.jpg';
 
-$galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'My Gallery';
+$displayName = $profileData['display_name'];
+$bioDesc = $profileData['bio_description'];
+$showGallery = $profileData['show_gallery_on_bio'];
+
+// Clean the bio for editing (remove HTML tags and decode entities)
+$bioDescPlain = html_entity_decode(strip_tags($bioDesc), ENT_QUOTES, 'UTF-8');
+
+// For the profile card preview, we want clickable links (autoLink)
+$bioDisplay = autoLink($bioDesc);
+
+$socialLinksDisplay = '';
+if (!empty($profileData['social_links'])) {
+    $links = json_decode($profileData['social_links'], true);
+    if (is_array($links)) {
+        $lines = [];
+        foreach ($links as $link) {
+            $lines[] = $link['label'] . '|' . $link['url'];
+        }
+        $socialLinksDisplay = implode("\n", $lines);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile</title>
+    <title>My Profile</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link href="style.css?v=3" rel="stylesheet">
 </head>
@@ -203,34 +253,32 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
     </div>
     <div class="main-content">
         <div class="container py-4">
+            <!-- rest of profile.php -->
             <?php if ($message !== ''): ?>
                 <div class="alert alert-info alert-dismissible fade show" role="alert">
                     <?php echo htmlspecialchars($message); ?>
                 </div>
             <?php endif; ?>
             <div class="row g-4">
-                <!-- Profile Card (left) -->
+                <!-- Profile Card -->
                 <div class="col-lg-4">
                     <div class="card shadow-sm">
-                        <img src="<?php echo htmlspecialchars($bannerImageSrc); ?>" 
-                            class="card-img-top" 
-                            alt="Profile banner" 
-                            style="height: 180px; object-fit: cover;">
+                        <img src="<?php echo htmlspecialchars($bannerImageSrc); ?>" class="card-img-top" alt="Banner" style="height: 180px; object-fit: cover;">
                         <div class="card-body text-center">
-                            <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" 
-                                alt="Profile picture" 
-                                class="rounded-circle border border-3 border-light shadow" 
-                                style="width: 110px; height: 110px; object-fit: cover; margin-top: -65px;">
-                            <h3 class="mt-3 mb-1"><?php echo htmlspecialchars($userData['name']); ?></h3>
-                            <p class="text-muted mb-0"><?php echo htmlspecialchars($galleryName); ?></p>
-                            <?php if (!empty($userData['bio_description'])): ?>
-                                <p class="mt-2 text-start"><?php echo nl2br(htmlspecialchars($userData['bio_description'])); ?></p>
+                            <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" alt="Profile" class="rounded-circle border border-3 border-light shadow" style="width: 110px; height: 110px; object-fit: cover; margin-top: -65px;">
+                            <h3 class="mt-3 mb-1"><?php echo htmlspecialchars($profileData['name']); ?></h3>
+                            <?php if (!empty($displayName)): ?>
+                                <p class="text-muted">Display name: <?php echo htmlspecialchars($displayName); ?></p>
+                            <?php endif; ?>
+                            <!-- Gallery name removed -->
+                            <?php if (!empty($bioDesc)): ?>
+                                <div class="mt-2 text-start"><?php echo nl2br($bioDisplay); ?></div>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
 
-                <!-- Edit Profile Form (right) -->
+                <!-- Edit Form -->
                 <div class="col-lg-8">
                     <div class="card shadow-sm">
                         <div class="card-body">
@@ -238,37 +286,40 @@ $galleryName = $userData['gallery_name'] !== '' ? $userData['gallery_name'] : 'M
                             <form method="post" enctype="multipart/form-data">
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Username (no spaces)</label>
-                                    <input type="text" id="username" name="username" class="form-control" value="<?php echo htmlspecialchars($userData['name']); ?>" required>
+                                    <input type="text" id="username" name="username" class="form-control" value="<?php echo htmlspecialchars($profileData['name']); ?>" required>
                                     <small class="text-muted">Spaces are not allowed.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="display_name" class="form-label">Display Name</label>
-                                    <input type="text" id="display_name" name="display_name" class="form-control" value="<?php echo htmlspecialchars($userData['display_name']); ?>" placeholder="Your public name">
-                                    <small class="text-muted">This name will appear on your public profile (leave blank to use username).</small>
+                                    <input type="text" id="display_name" name="display_name" class="form-control" value="<?php echo htmlspecialchars($displayName); ?>" placeholder="Your public name">
+                                    <small class="text-muted">This name will appear on your public profile.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="bio_description" class="form-label">Bio / Description</label>
-                                    <textarea id="bio_description" name="bio_description" class="form-control" rows="4" placeholder="Tell people about yourself..."><?php echo htmlspecialchars($userData['bio_description']); ?></textarea>
+                                    <textarea id="bio_description" name="bio_description" class="form-control" rows="4" placeholder="Tell people about yourself..."><?php echo htmlspecialchars($bioDescPlain); ?></textarea>
                                 </div>
+
+                                <!-- Social Links -->
+                                <div class="mb-3">
+                                    <label for="social_links" class="form-label">Social / Contact Links</label>
+                                    <textarea id="social_links" name="social_links" class="form-control" rows="4" placeholder="One per line: Label|URL&#10;Example: Twitter|https://twitter.com/username"><?php echo htmlspecialchars($socialLinksDisplay); ?></textarea>
+                                    <small class="text-muted">Format: Label|URL (one per line). These will appear as clickable buttons on your public profile.</small>
+                                </div>
+
+                                <!-- Gallery name field removed -->
+
                                 <div class="mb-3">
                                     <label for="profile_picture" class="form-label">Profile Picture</label>
                                     <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="gallery_name" class="form-label">Gallery Name</label>
-                                    <input type="text" id="gallery_name" name="gallery_name" class="form-control" value="<?php echo htmlspecialchars($galleryName); ?>">
                                 </div>
                                 <div class="mb-4">
                                     <label for="banner_image" class="form-label">Banner Image</label>
                                     <input type="file" id="banner_image" name="banner_image" class="form-control" accept="image/*">
                                 </div>
 
-                                <!-- Toggle: Show gallery on bio -->
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" name="show_gallery_on_bio" id="show_gallery_on_bio" value="1" <?php echo $userData['show_gallery_on_bio'] ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="show_gallery_on_bio">
-                                        Show public gallery on my bio page
-                                    </label>
+                                    <input class="form-check-input" type="checkbox" name="show_gallery_on_bio" id="show_gallery_on_bio" value="1" <?php echo $showGallery ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="show_gallery_on_bio">Show public gallery on my bio page</label>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary btn-lg w-100">Save Profile</button>

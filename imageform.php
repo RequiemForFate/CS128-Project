@@ -12,11 +12,10 @@ $conn = null;
 $currentUser = $_SESSION['username'] ?? '';
 
 if (empty($currentUser)) {
-    header('Location: index.php');
+    header('Location: login.php');
     exit();
 }
 
-// alert messages from session
 $alertMessages = [];
 if (isset($_SESSION['flash_messages'])) {
     $alertMessages = $_SESSION['flash_messages'];
@@ -42,8 +41,9 @@ if ($conn !== null) {
             image_name VARCHAR(255),
             ArtDes TEXT,
             owner VARCHAR(255) NOT NULL DEFAULT '',
-            isPublic TINYINT(1) NOT NULL DEFAULT 0,
-            isAnonymous TINYINT(1) NOT NULL DEFAULT 0,
+            isPublic TINYINT(1) DEFAULT 0,
+            isAnonymous TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (owner, ArtID)
         )
     ";
@@ -56,8 +56,11 @@ if ($conn !== null) {
             profile_picture VARCHAR(255),
             gallery_name VARCHAR(100),
             banner_image VARCHAR(255),
+            display_name VARCHAR(100) DEFAULT '',
             bio_description TEXT,
-            show_gallery_on_bio TINYINT(1) NOT NULL DEFAULT 1
+            show_gallery_on_bio TINYINT(1) DEFAULT 1,
+            bg_color VARCHAR(7) DEFAULT '#f5f5f5',
+            social_links TEXT
         )
     ";
     $conn->query($createUsers);
@@ -73,8 +76,12 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
         $ArtDes = $conn->real_escape_string($_POST['ArtDes']);
         $isPublic = isset($_POST['isPublic']) ? 1 : 0;
         $isAnonymous = isset($_POST['isAnonymous']) ? 1 : 0;
+        if ($isAnonymous && !$isPublic) {
+            $alertMessages[] = "Anonymous posting requires the artwork to be public. We've made it public.";
+            $isPublic = 1;
+        }
 
-        // --- DUPLICATE CHECK (per user) ---
+        // DUPLICATE CHECK
         $checkStmt = $conn->prepare("SELECT ArtID FROM Artdata WHERE owner = ? AND ArtID = ?");
         $checkStmt->bind_param("ss", $currentUser, $ArtID);
         $checkStmt->execute();
@@ -82,23 +89,39 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
         if ($checkResult->num_rows > 0) {
             $alertMessages[] = "You already have an artwork with this ID. Please choose a different Art ID.";
         } else {
-            // Proceed with insert
+            // --- File upload (images + videos) ---
             if(isset($_FILES['filUpload']) && $_FILES['filUpload']['error'] === UPLOAD_ERR_OK){
-                $image = basename($_FILES['filUpload']['name']);
-                if(!move_uploaded_file($_FILES['filUpload']['tmp_name'], $uploadDir . $image)){
-                    $alertMessages[] = "Image upload failed!";
+                $fileTmpPath = $_FILES['filUpload']['tmp_name'];
+                $fileName = basename($_FILES['filUpload']['name']);
+                $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+                // Allowed file types: images + videos
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'];
+                if (in_array($fileExtension, $allowedExtensions)) {
+                    // Generate a unique filename to avoid overwriting
+                    $newFileName = time() . '_' . bin2hex(random_bytes(8)) . '.' . $fileExtension;
+                    $destPath = $uploadDir . $newFileName;
+                    if (move_uploaded_file($fileTmpPath, $destPath)) {
+                        $image = $newFileName;
+                    } else {
+                        $alertMessages[] = "File upload failed!";
+                    }
+                } else {
+                    $alertMessages[] = "Invalid file type. Please upload an image or video.";
                 }
             }
 
-            $stmt = $conn->prepare("INSERT INTO Artdata(ArtID, ArtName, image_name, ArtDes, owner, isPublic, isAnonymous) VALUES(?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssssii", $ArtID, $ArtName, $image, $ArtDes, $currentUser, $isPublic, $isAnonymous);
-            if($stmt->execute()){
-                $alertMessages[] = "Insert success!";
-                $_SESSION['flash_messages'] = $alertMessages;
-                header('Location: Archive.php');
-                exit();
+            if ($image !== '' && empty($alertMessages)) {
+                $stmt = $conn->prepare("INSERT INTO Artdata(ArtID, ArtName, image_name, ArtDes, owner, isPublic, isAnonymous) VALUES(?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("sssssii", $ArtID, $ArtName, $image, $ArtDes, $currentUser, $isPublic, $isAnonymous);
+                if($stmt->execute()){
+                    $alertMessages[] = "Insert success!";
+                } else {
+                    $alertMessages[] = "Insert fail: " . $stmt->error;
+                }
+                $stmt->close();
             } else {
-                $alertMessages[] = "Insert fail: " . $stmt->error;
+                // If image empty, means no file or upload failed; we already have alerts
             }
         }
         $checkStmt->close();
@@ -107,12 +130,16 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
         $ArtID = $conn->real_escape_string($_POST['ArtID']);
         $newArtName = trim($_POST['ArtName']);
         $newArtDes = trim($_POST['ArtDes']);
+        $image = "";
         $isPublic = isset($_POST['isPublic']) ? 1 : 0;
         $isAnonymous = isset($_POST['isAnonymous']) ? 1 : 0;
-        $image = "";
+        if ($isAnonymous && !$isPublic) {
+            $alertMessages[] = "Anonymous posting requires the artwork to be public. We've made it public.";
+            $isPublic = 1;
+        }
 
-        // --- Fetch existing data ---
-        $stmt = $conn->prepare("SELECT ArtName, ArtDes, image_name, isPublic, isAnonymous FROM Artdata WHERE ArtID = ? AND owner = ?");
+        // Fetch existing
+        $stmt = $conn->prepare("SELECT ArtName, ArtDes, image_name FROM Artdata WHERE ArtID = ? AND owner = ?");
         $stmt->bind_param("ss", $ArtID, $currentUser);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -121,25 +148,36 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
             $existingArtName = $row['ArtName'];
             $existingArtDes = $row['ArtDes'];
             $existingImage = $row['image_name'];
-            $existingIsPublic = $row['isPublic'];
-            $existingIsAnonymous = $row['isAnonymous'];
         } else {
             $alertMessages[] = "Update failed: Artwork not found or you don't own it.";
             $shouldRedirect = true;
         }
+        $stmt->close();
 
         if(empty($alertMessages)) {
-            // Use existing values 
             $ArtName = (empty($newArtName)) ? $existingArtName : $newArtName;
             $ArtDes = (empty($newArtDes)) ? $existingArtDes : $newArtDes;
 
-            // Image: keep existing unless a new file is uploaded
+            // Handle file upload (if any)
             if(isset($_FILES['filUpload']) && $_FILES['filUpload']['error'] === UPLOAD_ERR_OK && $_FILES['filUpload']['size'] > 0){
-                $image = basename($_FILES['filUpload']['name']);
-                if(!move_uploaded_file($_FILES['filUpload']['tmp_name'], $uploadDir . $image)){
-                    $alertMessages[] = "Image upload failed!";
+                $fileTmpPath = $_FILES['filUpload']['tmp_name'];
+                $fileName = basename($_FILES['filUpload']['name']);
+                $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'];
+                if (in_array($fileExtension, $allowedExtensions)) {
+                    $newFileName = time() . '_' . bin2hex(random_bytes(8)) . '.' . $fileExtension;
+                    $destPath = $uploadDir . $newFileName;
+                    if (move_uploaded_file($fileTmpPath, $destPath)) {
+                        // Delete old file if it exists
+                        if (!empty($existingImage) && file_exists($uploadDir . $existingImage)) {
+                            unlink($uploadDir . $existingImage);
+                        }
+                        $image = $newFileName;
+                    } else {
+                        $alertMessages[] = "File upload failed!";
+                    }
                 } else {
-                    // New image uploaded successfully
+                    $alertMessages[] = "Invalid file type. Please upload an image or video.";
                 }
             } else {
                 $image = $existingImage; // keep existing
@@ -147,17 +185,30 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
 
             if(empty($alertMessages)) {
                 $updateStmt = $conn->prepare("UPDATE Artdata SET ArtName=?, image_name=?, ArtDes=?, isPublic=?, isAnonymous=? WHERE ArtID=? AND owner=?");
-                $updateStmt->bind_param("ssssiss", $ArtName, $image, $ArtDes, $isPublic, $isAnonymous, $ArtID, $currentUser);
+                $updateStmt->bind_param("sssiiis", $ArtName, $image, $ArtDes, $isPublic, $isAnonymous, $ArtID, $currentUser);
                 if($updateStmt->execute()){
                     $alertMessages[] = "Update success";
                 } else {
                     $alertMessages[] = "Update failed.";
                 }
+                $updateStmt->close();
             }
         }
 
     } else if(isset($_POST['Delete'])){
         $ArtID = $conn->real_escape_string($_POST['ArtID']);
+        // Delete the file first
+        $selectStmt = $conn->prepare("SELECT image_name FROM Artdata WHERE ArtID=? AND owner=?");
+        $selectStmt->bind_param("ss", $ArtID, $currentUser);
+        $selectStmt->execute();
+        $selectResult = $selectStmt->get_result();
+        if ($row = $selectResult->fetch_assoc()) {
+            if (!empty($row['image_name']) && file_exists($uploadDir . $row['image_name'])) {
+                unlink($uploadDir . $row['image_name']);
+            }
+        }
+        $selectStmt->close();
+
         $deleteStmt = $conn->prepare("DELETE FROM Artdata WHERE ArtID=? AND owner=?");
         $deleteStmt->bind_param("ss", $ArtID, $currentUser);
         if($deleteStmt->execute()){
@@ -165,13 +216,14 @@ if($_SERVER['REQUEST_METHOD'] == "POST" && $conn !== null){
         } else {
             $alertMessages[] = "Delete failed.";
         }
+        $deleteStmt->close();
     }
 
     $_SESSION['flash_messages'] = $alertMessages;
     $shouldRedirect = true;
 }
 
-if ($shouldRedirect && !isset($_POST['Insert'])) {
+if ($shouldRedirect) {
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit();
 }
@@ -209,23 +261,18 @@ if ($shouldRedirect && !isset($_POST['Insert'])) {
                         <label>Art Description</label>
                         <textarea name="ArtDes" class="form-control" rows="4" placeholder="Enter Description..."></textarea>
 
-                        <!-- Public toggle -->
-                        <div class="form-check mb-2 mt-2">
-                            <input class="form-check-input" type="checkbox" name="isPublic" id="isPublic" value="1">
-                            <label class="form-check-label" for="isPublic">
-                                🌍 Make this artwork publicly visible
-                            </label>
-                        </div>
+                        <!-- File input accepts both images and videos -->
+                        <input type="file" name="filUpload" id="image" accept="image/*,video/*" class="mt-2"><br><br>
 
-                        <!-- Anonymous toggle -->
+                        <!-- Toggles -->
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="isPublic" id="isPublic" value="1" checked>
+                            <label class="form-check-label" for="isPublic">Make this artwork public</label>
+                        </div>
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" name="isAnonymous" id="isAnonymous" value="1">
-                            <label class="form-check-label" for="isAnonymous">
-                                🕵️ Hide my name (post anonymously)
-                            </label>
+                            <label class="form-check-label" for="isAnonymous">Post anonymously (only if public)</label>
                         </div>
-
-                        <input type="file" name="filUpload" id="image" accept="image/*" class="mt-2"><br><br>
 
                         <div class="btn-group d-flex justify-content-center">
                             <button class="btn btn-primary" name="Insert" value="Insert">Insert</button>
@@ -247,23 +294,26 @@ if ($shouldRedirect && !isset($_POST['Insert'])) {
                                 $result = $stmt->get_result();
                                 if($result && $result->num_rows > 0){
                                     while($row = $result->fetch_assoc()){
+                                        $filePath = UPLOAD_DIR . htmlspecialchars($row['image_name']);
+                                        $fileExt = strtolower(pathinfo($row['image_name'], PATHINFO_EXTENSION));
+                                        $isVideo = in_array($fileExt, ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv']);
                         ?>
                                 <div class="col">
                                     <div class="card h-100">
-                                        <img src="<?php echo UPLOAD_DIR . htmlspecialchars($row['image_name']); ?>"
-                                            class="card-img-top"
-                                            alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
+                                        <?php if ($isVideo): ?>
+                                            <video controls class="card-img-top" style="height: 200px; object-fit: cover; background:#000;">
+                                                <source src="<?php echo $filePath; ?>" type="video/<?php echo $fileExt; ?>">
+                                                Your browser does not support the video tag.
+                                            </video>
+                                        <?php else: ?>
+                                            <img src="<?php echo $filePath; ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
+                                        <?php endif; ?>
                                         <div class="card-body text-center">
                                             <p class="card-text small">Art ID: <?php echo htmlspecialchars($row['ArtID']); ?></p>
                                             <h5 class="card-title"><?php echo htmlspecialchars($row['ArtName']); ?></h5>
-                                            <?php if (isset($row['isPublic'])): ?>
-                                                <span class="badge <?php echo $row['isPublic'] ? 'bg-success' : 'bg-secondary'; ?>">
-                                                    <?php echo $row['isPublic'] ? '🌍 Public' : '🔒 Private'; ?>
-                                                </span>
-                                            <?php endif; ?>
-                                            <?php if (isset($row['isAnonymous']) && $row['isAnonymous']): ?>
-                                                <span class="badge bg-dark">🕵️ Anonymous</span>
-                                            <?php endif; ?>
+                                            <span class="badge <?php echo $row['isPublic'] ? 'bg-success' : 'bg-secondary'; ?>">
+                                                <?php echo $row['isPublic'] ? 'Public' : 'Private'; ?>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -277,3 +327,4 @@ if ($shouldRedirect && !isset($_POST['Insert'])) {
     </div>
 </body>
 </html>
+<?php if ($conn) $conn->close(); ?>

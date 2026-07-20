@@ -3,18 +3,27 @@ session_start();
 require_once 'config.php';
 
 $currentUser = $_SESSION['username'] ?? '';
+if ($currentUser === '') {
+    header('Location: login.php');
+    exit();
+}
 
-function resolveImagePath($imageName) {
-    if (empty($imageName)) return '';
+function resolveMediaPath($fileName) {
+    if (empty($fileName)) return '';
     $candidatePaths = [
-        UPLOAD_DIR . $imageName,
-        $imageName,
-        UPLOAD_DIR . basename($imageName),
+        UPLOAD_DIR . $fileName,
+        $fileName,
+        UPLOAD_DIR . basename($fileName),
     ];
     foreach ($candidatePaths as $path) {
         if ($path !== '' && file_exists($path)) return $path;
     }
     return $candidatePaths[0];
+}
+
+function isVideoFile($fileName) {
+    $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+    return in_array($ext, ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv']);
 }
 
 $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
@@ -29,71 +38,41 @@ $errorMessage = '';
 if ($id <= 0) {
     $errorMessage = 'Invalid artwork ID.';
 } else {
-    // --- Build query based on login status ---
-    if ($currentUser !== '') {
-        // Logged in: can see own private + all public
-        $sql = "SELECT * FROM Artdata WHERE ArtID = ? AND (owner = ? OR isPublic = 1)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("is", $id, $currentUser);
-    } else {
-        // Guest: can only see public artworks
-        $sql = "SELECT * FROM Artdata WHERE ArtID = ? AND isPublic = 1";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-    }
-
+    $sql = "SELECT * FROM Artdata WHERE ArtID = ? AND owner = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("is", $id, $currentUser);
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
 
     if (!$row) {
-        $errorMessage = 'Artwork not found or you do not have permission to view it.';
+        $errorMessage = 'Artwork not found or you do not own it.';
     } else {
-        $imagePath = resolveImagePath($row['image_name'] ?? '');
+        $mediaPath = resolveMediaPath($row['image_name'] ?? '');
+        if (!file_exists($mediaPath)) {
+            $mediaPath = 'images/missing-image.png';
+        }
         $currentID = $row['ArtID'];
 
-        // --- Previous / Next navigation (respects visibility rules) ---
-        if ($currentUser !== '') {
-            $prevStmt = $conn->prepare("
-                SELECT ArtID FROM Artdata 
-                WHERE ArtID < ? AND (owner = ? OR isPublic = 1) 
-                ORDER BY ArtID DESC LIMIT 1
-            ");
-            $prevStmt->bind_param("is", $currentID, $currentUser);
-            $prevStmt->execute();
-            $prevResult = $prevStmt->get_result();
-            $prev = $prevResult->fetch_assoc();
+        $prevStmt = $conn->prepare("
+            SELECT ArtID FROM Artdata 
+            WHERE owner = ? AND ArtID < ? 
+            ORDER BY ArtID DESC LIMIT 1
+        ");
+        $prevStmt->bind_param("si", $currentUser, $currentID);
+        $prevStmt->execute();
+        $prevResult = $prevStmt->get_result();
+        $prev = $prevResult->fetch_assoc();
 
-            $nextStmt = $conn->prepare("
-                SELECT ArtID FROM Artdata 
-                WHERE ArtID > ? AND (owner = ? OR isPublic = 1) 
-                ORDER BY ArtID ASC LIMIT 1
-            ");
-            $nextStmt->bind_param("is", $currentID, $currentUser);
-            $nextStmt->execute();
-            $nextResult = $nextStmt->get_result();
-            $next = $nextResult->fetch_assoc();
-        } else {
-            $prevStmt = $conn->prepare("
-                SELECT ArtID FROM Artdata 
-                WHERE ArtID < ? AND isPublic = 1 
-                ORDER BY ArtID DESC LIMIT 1
-            ");
-            $prevStmt->bind_param("i", $currentID);
-            $prevStmt->execute();
-            $prevResult = $prevStmt->get_result();
-            $prev = $prevResult->fetch_assoc();
-
-            $nextStmt = $conn->prepare("
-                SELECT ArtID FROM Artdata 
-                WHERE ArtID > ? AND isPublic = 1 
-                ORDER BY ArtID ASC LIMIT 1
-            ");
-            $nextStmt->bind_param("i", $currentID);
-            $nextStmt->execute();
-            $nextResult = $nextStmt->get_result();
-            $next = $nextResult->fetch_assoc();
-        }
+        $nextStmt = $conn->prepare("
+            SELECT ArtID FROM Artdata 
+            WHERE owner = ? AND ArtID > ? 
+            ORDER BY ArtID ASC LIMIT 1
+        ");
+        $nextStmt->bind_param("si", $currentUser, $currentID);
+        $nextStmt->execute();
+        $nextResult = $nextStmt->get_result();
+        $next = $nextResult->fetch_assoc();
     }
 }
 ?>
@@ -115,24 +94,26 @@ if ($id <= 0) {
                 <div class="alert alert-warning">
                     <?php echo htmlspecialchars($errorMessage); ?>
                 </div>
-            <?php else: ?>
+            <?php else: 
+                $isVideo = isVideoFile($row['image_name']);
+            ?>
                 <div class="row align-items-center g-4">
                     <div class="col-md-7">
-                        <img
-                            src="<?php echo htmlspecialchars($imagePath); ?>"
-                            class="big-image"
-                            alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
+                        <?php if ($isVideo): ?>
+                            <video controls class="big-image" style="width:100%; max-height:80vh; background:#000;">
+                                <source src="<?php echo htmlspecialchars($mediaPath); ?>" type="video/<?php echo pathinfo($mediaPath, PATHINFO_EXTENSION); ?>">
+                                Your browser does not support the video tag.
+                            </video>
+                        <?php else: ?>
+                            <img src="<?php echo htmlspecialchars($mediaPath); ?>" class="big-image" alt="<?php echo htmlspecialchars($row['ArtName']); ?>">
+                        <?php endif; ?>
                     </div>
                     <div class="col-md-5">
                         <h1><?php echo htmlspecialchars($row['ArtName']); ?></h1>
                         <p class="text-muted">
-                        <strong>Artist:</strong> 
-                        <?php if ($row['isAnonymous']): ?>
-                        Anonymous
-                        <?php else: ?>
-                        <a href="bios.php?user=<?php echo urlencode($row['owner']); ?>"><?php echo htmlspecialchars($row['owner']); ?></a>
-                        <?php endif; ?>
-</p>
+                            <strong>ID:</strong> <?php echo htmlspecialchars($row['ArtID']); ?><br>
+                            <strong>Status:</strong> <?php echo $row['isPublic'] ? 'Public' : 'Private'; ?>
+                        </p>
                         <p><?php echo autoLink($row['ArtDes']); ?></p>
                         <div class="d-flex justify-content-between mt-5 gap-2">
                             <?php if ($prev) { ?>

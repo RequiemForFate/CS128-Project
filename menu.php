@@ -5,61 +5,49 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Get the logged‑in username (or empty string if not set)
 $username = $_SESSION['username'] ?? '';
+$isLoggedIn = !empty($username);
 
-// Default avatar (fallback)
+// Default avatar
 $profileImageSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="32" fill="%234563ea"/%3E%3Ccircle cx="32" cy="24" r="14" fill="%23ffffff"/%3E%3Cellipse cx="32" cy="48" rx="20" ry="16" fill="%23ffffff"/%3E%3C/svg%3E';
 
-// Initialize $userData with a safe default (avoids undefined variable errors)
-$userData = ['display_name' => $username];
-
-// If we have a username, try to load the custom profile picture and display name
-if (!empty($username) && extension_loaded('mysqli')) {
+if ($isLoggedIn && extension_loaded('mysqli')) {
     $menuConn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if (!$menuConn->connect_error) {
-        // Fetch both profile_picture and display_name
-        $stmt = $menuConn->prepare("SELECT profile_picture, display_name FROM users WHERE name = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            if (!empty($row['profile_picture'])) {
-                $profileImageSrc = UPLOAD_DIR . htmlspecialchars($row['profile_picture']);
+        $profilestmt = $menuConn->prepare("SELECT profile_picture FROM users WHERE name = ?");
+        $profilestmt->bind_param("s", $username);
+        $profilestmt->execute();
+        $profileresult = $profilestmt->get_result();
+        if ($profileresult->num_rows > 0) {
+            $profilerow = $profileresult->fetch_assoc();
+            if (!empty($profilerow['profile_picture'])) {
+                $profileImageSrc = UPLOAD_DIR . htmlspecialchars($profilerow['profile_picture']);
             }
-            // Now $userData contains the display_name from the DB
-            $userData = $row;
         }
         $menuConn->close();
     }
 }
 ?>
-<!-- The Side Menu -->
 <button id="sidebarToggle" class="sidebar-toggle" aria-expanded="true" aria-controls="sidebar">☰ Menu</button>
 <div class="sidebar" id="sidebar">
-    <?php if (!empty($username)): ?>
-        <!-- Logged-in user -->
+    <?php if ($isLoggedIn): ?>
         <a href="bios.php?user=<?php echo urlencode($username); ?>" class="profile-link">
             <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" alt="Profile" class="profile-avatar">
-            <span class="username-display">
-                <?php 
-                    // Use display_name if available, otherwise fallback to username
-                    $displayName = !empty($userData['display_name']) ? $userData['display_name'] : $username;
-                    echo htmlspecialchars($displayName);
-                ?>
-            </span>
+            <span class="username-display"><?php echo htmlspecialchars($username); ?></span>
         </a>
         <br>
-        <a href="Artwork.php">Gallery</a><br>
-        <a href="Archive.php">Archive</a><br>
+        <a href="Artwork.php">My Gallery</a><br>
+        <a href="index.php">Public Gallery</a><br>
         <a href="imageform.php">Insert Image</a><br>
         <a href="logout.php">Logout</a><br>
     <?php else: ?>
-        <!-- Guest (not logged in) -->
+        <a href="login.php" class="profile-link">
+            <img src="<?php echo htmlspecialchars($profileImageSrc); ?>" alt="Profile" class="profile-avatar">
+            <span class="username-display">Guest</span>
+        </a>
         <br>
-        <a href="Artwork.php">Gallery</a><br>
-        <a href="index.php">Login</a><br>
+        <a href="index.php">Public Gallery</a><br>
+        <a href="login.php">Login</a><br>
         <a href="signin.php">Sign Up</a><br>
     <?php endif; ?>
 </div>
