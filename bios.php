@@ -69,7 +69,7 @@ function isVideoFile($fileName) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link href="style.css?v=4" rel="stylesheet">
     <style>
-        .profile-avatar { width: 110px; height: 110px; object-fit: cover; margin-top: -65px; }
+        .profile-bios { width: 110px; height: 110px; object-fit: cover; margin-top: -65px; }
         .bio-text { white-space: pre-wrap; }
         .gallery-grid .card { border: none; background: #fff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: 0.2s; }
         .gallery-grid .card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
@@ -107,7 +107,7 @@ function isVideoFile($fileName) {
             <div class="card shadow-sm mx-auto" style="max-width:600px;">
                 <img src="<?php echo htmlspecialchars($banner); ?>" class="card-img-top" style="height:160px; object-fit:cover;">
                 <div class="card-body text-center">
-                    <img src="<?php echo htmlspecialchars($profilePic); ?>" class="rounded-circle border border-3 border-light shadow profile-avatar">
+                    <img src="<?php echo htmlspecialchars($profilePic); ?>" class="rounded-circle border border-3 border-light shadow profile-biod">
                     <h3 class="mt-3"><?php echo htmlspecialchars($displayName); ?></h3>
                     <?php if (!empty($profile['bio_description'])): ?>
                         <div class="bio-text text-start"><?php echo nl2br(autoLink($profile['bio_description'])); ?></div>
@@ -132,7 +132,7 @@ function isVideoFile($fileName) {
 
             <?php if ($showGallery): ?>
                 <div class="mt-5">
-                    <h3 class="text-center mb-3">Public Gallery</h3>
+                    <h3 class="text-center mb-3">Gallery</h3>
                     <?php if (count($artworks) === 0): ?>
                         <p class="text-muted text-center">
                             <?php echo $isOwner ? 'You haven’t shared any public artworks yet.' : 'This user has no public artworks.'; ?>
